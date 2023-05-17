@@ -1,0 +1,33 @@
+Package: DGP4LCF
+Type: Package
+Title: Modeling Interactive Biological Pathways From High-Dimensional Gene Expression Trajectories Using Dependent Gaussian Processes
+Version: 0.1.0
+Maintainer: Jiachen Cai <jiachen.cai@mrc-bsu.cam.ac.uk>
+Author: person("Jiachen", "Cai", email = "jiachen.cai@mrc-bsu.cam.ac.uk")
+Description: This package implements the BSFA-DGP model proposed in the paper.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+RoxygenNote: 7.2.3
+Imports: 
+    GPFDA,
+    Rcpp,
+    RcppArmadillo,
+    factor.switching,
+    mvtnorm,
+    combinat,
+    coda,
+    corrplot,
+    pheatmap,
+    stats
+LinkingTo: 
+  Rcpp, 
+  RcppArmadillo
+Suggests: 
+    knitr,
+    rmarkdown,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+Depends: 
+    R (>= 2.10)
+VignetteBuilder: knitr
