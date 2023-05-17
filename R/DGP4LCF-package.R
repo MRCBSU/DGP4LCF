@@ -2,11 +2,13 @@
 "_PACKAGE"
 
 ## usethis namespace: start
+#' @import stats
 #' @importFrom coda gelman.diag
 #' @importFrom coda mcmc
 #' @importFrom coda mcmc.list
+#' @importFrom GPFDA mgpCovMat
+#' @importFrom GPFDA mgpr
 #' @importFrom grDevices colorRampPalette
-#' @import stats
 ## usethis namespace: end
 NULL
 

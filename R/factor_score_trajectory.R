@@ -6,6 +6,7 @@
 #' @param factor_index A numeric scalar. Index of the factor of interest.
 #' @param person_index A numeric scalar. Index of the person of interest.
 #' @param trajectory_title A character. Title for the factor trajectory plot.
+#' @param cex_main. A numeric scalar. Text size of the title.
 #'
 #' @examples
 #' # See examples in vignette

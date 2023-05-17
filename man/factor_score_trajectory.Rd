@@ -20,6 +20,8 @@ factor_score_trajectory(
 \item{person_index}{A numeric scalar. Index of the person of interest.}
 
 \item{trajectory_title}{A character. Title for the factor trajectory plot.}
+
+\item{cex_main.}{A numeric scalar. Text size of the title.}
 }
 \value{
 Trajectory of the designated person-factor.
