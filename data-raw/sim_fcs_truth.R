@@ -45,7 +45,7 @@ for (list_index in 1:k){
 h3n2_data_test$input<- list_temp
 
 # load the source of covariance matrix
-load("~/rds/hpc-work/corrected_code/sim/truth_correlated_factors/generated_var_is_1/generated_real_data.RData")
+load("~/rds/hpc-work/sim/regular/truth_correlated_factors/generated_var_is_1/generated_real_data.RData")
 
 ### generate real data
 real_y<- array(0,dim=c(num_time_all, k, n)) # time_all*k*n
@@ -111,7 +111,7 @@ for (person_index in 1:n){
 }
 
 # all data as training data
-observed_x_train<- observed_x
+# observed_x_train<- observed_x
 
 ############################ irregular time points: if succeed, save this part as well ################################
 ### 1. regular missing - for people with odd number, only have 6 observed time points

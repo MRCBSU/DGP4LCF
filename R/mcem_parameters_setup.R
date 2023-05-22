@@ -28,7 +28,7 @@
 #' @param phi_init A p-dimensional column vector. Initials values of the variance for residuals when modeling gene expressions, corresponding to \eqn{\frac{1}{\phi^2}}{1/(\phi^2)} in the manuscript. Can be obtained using BFRM software.
 #' @param a_full A numeric vector. Complete time observed, sorted from early to late.
 #' @param train_index A q-dimensional column vector. Index of time points used in the training data.
-#' @param x A list of n elements. Each element is a matrix of dimension (p, n_i), storing the gene expressions for the ith subject.
+#' @param x A list of n elements. Each element is a matrix of dimension (p, q_i), storing the gene expressions for the ith subject.
 #' @param model_dgp A logical value. model_dgp = TRUE (default setting) uses the Dependent Gaussian Process to model latent factor trajectories, otherwise the Independent Gaussian Process is used.
 #'
 #' @examples
