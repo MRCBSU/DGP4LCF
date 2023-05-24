@@ -4,19 +4,20 @@
 #'
 #' @param burnin A numeric scalar. The saved samples are already after burnin; therefore the default value for this parameter here is 0. Can discard further samples if needed.
 #' @param thin_step A numeric scalar. The saved samples are already after thinning; therefore the default value for this parameter here is 1. Can be further thinned if needed.
-#' @param pred_x_truth An array of dimension (n, p, num_time_test), storing true gene expression in the testing data.
+#' @param pred_x_truth_inidcator A logical value. pred_x_truth_indicator = TRUE means that truth of predicted gene expressions are available, otherwise not.
+#' @param pred_x_truth Only needed if pred_x_truth_inidcator = TRUE. An array of dimension (n, p, num_time_test), storing true gene expressions in the testing data.
 #' @param gibbs_after_mcem_combine_chains_result A list of objects returned from the function 'gibbs_after_mcem_combine_chains'.
 #'
 #' @examples
 #' # See examples in vignette
-#' vignette("bsfadgp_regular_data_example", package = "DGP4LCF")
-#' vignette("bsfadgp_irregular_data_example", package = "DGP4LCF")
+#' vignette("bsfadgp_regular_data_example", package = "bsfadgp")
 #'
-#' @return Convergence assessment for important continuous variables that do not need alignment, and posterior summary for predicted gene expression.
+#' @return Convergence assessment for important continuous variables that do not need alignment, and posterior summary for predicted gene expressions.
 #' @export
 numerics_summary_do_not_need_alignment<- function(burnin = 0,
                                                   thin_step = 1,
-                                                  pred_x_truth,
+                                                  pred_x_truth_indicator,
+                                                  pred_x_truth = NULL,
                                                   gibbs_after_mcem_combine_chains_result){
 
   p<- gibbs_after_mcem_combine_chains_result$p
@@ -28,15 +29,18 @@ numerics_summary_do_not_need_alignment<- function(burnin = 0,
   ind_x<- gibbs_after_mcem_combine_chains_result$ind_x
   num_sample = gibbs_after_mcem_combine_chains_result$num_sample
   phi_final_array = gibbs_after_mcem_combine_chains_result$phi
+  pred_indicator = gibbs_after_mcem_combine_chains_result$pred_indicator
 
   if (ind_x){
     individual_mean_final_array = gibbs_after_mcem_combine_chains_result$individual_mean
     variance_g_final_array = gibbs_after_mcem_combine_chains_result$variance_g
   }
 
+  if (pred_indicator){
+
     pred_x_final_array = gibbs_after_mcem_combine_chains_result$pred_x
 
-
+  }
 
   rm(gibbs_after_mcem_combine_chains_result)
 
@@ -61,67 +65,74 @@ numerics_summary_do_not_need_alignment<- function(burnin = 0,
 
   # create a matrix that is used to restore the result
 
-  if(ind_x){
+  if(ind_x & pred_indicator){
     convergence_result_table<- matrix(0, nrow = 4, ncol = 2)
     rownames(convergence_result_table)<- c("rhat_pred_x", "rhat_phi", "rhat_pred_individual_mean", "rhat_variance_g")
-  } else {
+  } else if (!ind_x & pred_indicator){
     convergence_result_table<- matrix(0, nrow = 2, ncol = 2)
     rownames(convergence_result_table)<- c("rhat_pred_x", "rhat_phi")
+  } else if (ind_x & !pred_indicator){
+    convergence_result_table<- matrix(0, nrow = 3, ncol = 2)
+    rownames(convergence_result_table)<- c("rhat_phi", "rhat_pred_individual_mean", "rhat_variance_g")
+  } else {
+    convergence_result_table<- matrix(0, nrow = 1, ncol = 2)
+    rownames(convergence_result_table)<- c("rhat_phi")
   }
 
   colnames(convergence_result_table)<- c("Max Rhat", "Proportion of Rhat larger than 1.2")
+
+  convergence_result_table_index<- 0
 
   ######################################################################################################
   ########################################### convergence assessment ###################################
   ######################################################################################################
 
-  ########################################### rhat for predicted x ###########################################
+  if (pred_indicator){
 
-  rhat_pred_x<- matrix(0, nrow = (n*p*num_time_test), ncol = 5)
-  colnames(rhat_pred_x)<- c("person index", "biomarker index", "time index", "point estimate", "upper")
+    ########################################### rhat for predicted x ###########################################
 
-  row_index<- 0
+    rhat_pred_x<- matrix(0, nrow = (n*p*num_time_test), ncol = 5)
+    colnames(rhat_pred_x)<- c("person index", "biomarker index", "time index", "point estimate", "upper")
 
-  for (person_index in 1:n){
-    print(paste0("This is for person_index: ",  person_index))
-    for (biomarker_index in 1:p){
-      for (time_index in 1:num_time_test){
+    row_index<- 0
 
-        row_index<- row_index + 1
+    for (person_index in 1:n){
+      #print(paste0("This is for person_index: ",  person_index))
+      for (biomarker_index in 1:p){
+        for (time_index in 1:num_time_test){
 
-        rhat_pred_x[row_index,1]<- person_index
-        rhat_pred_x[row_index,2]<- biomarker_index
-        rhat_pred_x[row_index,3]<- time_index
+          row_index<- row_index + 1
 
-        mh.list1<-   list(as.mcmc(pred_x_final_array[time_index, biomarker_index, person_index, keep_set1,1]),
-                          as.mcmc(pred_x_final_array[time_index, biomarker_index, person_index, keep_set2,1]))
+          rhat_pred_x[row_index,1]<- person_index
+          rhat_pred_x[row_index,2]<- biomarker_index
+          rhat_pred_x[row_index,3]<- time_index
 
-        for (chain_index in 2:tot_chain){
-          mh.list1<- c(mh.list1,
-                            list(as.mcmc(pred_x_final_array[time_index, biomarker_index, person_index, keep_set1,chain_index]),
-                                 as.mcmc(pred_x_final_array[time_index, biomarker_index, person_index, keep_set2,chain_index])))
+          mh.list1<-   list(as.mcmc(pred_x_final_array[time_index, biomarker_index, person_index, keep_set1,1]),
+                            as.mcmc(pred_x_final_array[time_index, biomarker_index, person_index, keep_set2,1]))
+
+          for (chain_index in 2:tot_chain){
+            mh.list1<- c(mh.list1,
+                         list(as.mcmc(pred_x_final_array[time_index, biomarker_index, person_index, keep_set1,chain_index]),
+                              as.mcmc(pred_x_final_array[time_index, biomarker_index, person_index, keep_set2,chain_index])))
+          }
+
+          mh.list <- mcmc.list(mh.list1)
+
+          rhat_pred_x[row_index,(4:5)]<- as.numeric(gelman.diag(mh.list)$psrf)
         }
-
-        mh.list <- mcmc.list(mh.list1)
-
-        rhat_pred_x[row_index,(4:5)]<- as.numeric(gelman.diag(mh.list)$psrf)
       }
     }
-  }
 
-  convergence_result_table_index<- 1
-  convergence_result_table[convergence_result_table_index, 1]<- round(max(rhat_pred_x[,4]),2)
-  convergence_result_table[convergence_result_table_index, 2]<- round(sum((rhat_pred_x[,4])>1.2)/row_index,2)
+    convergence_result_table_index<- convergence_result_table_index + 1
+    convergence_result_table[convergence_result_table_index, 1]<- round(max(rhat_pred_x[,4]),2)
+    convergence_result_table[convergence_result_table_index, 2]<- round(sum((rhat_pred_x[,4])>1.2)/row_index,2)
 
-  print(paste0("This is convergence summary for x: ",  convergence_result_table[convergence_result_table_index,]))
-
-  ######################################################################################################
-  ########################### posterior summary for predicted x ###################################
-  ######################################################################################################
-
-  # if did prediction before:
+    #print(paste0("This is convergence summary for x: ",  convergence_result_table[convergence_result_table_index,]))
 
 
+    ######################################################################################################
+    ########################### posterior summary for predicted x ###################################
+    ######################################################################################################
 
     tot_sample_all_chains<- (tot_sample_after_thinning*tot_chain)
 
@@ -157,13 +168,15 @@ numerics_summary_do_not_need_alignment<- function(burnin = 0,
       }
     }
 
+    if (pred_x_truth_indicator){
+
       pred_median_err<- abs(pred_median_quantile - pred_x_truth)
 
       sum_truth_within_interval_counter<- sum((pred_x_truth > pred_lower_quantile) & (pred_x_truth < pred_upper_quantile))
 
-      print(paste0("This is mae for x: ",  mean(pred_median_err)))
-      print(paste0("This is mwi for x: ",  mean(abs(pred_upper_quantile-pred_lower_quantile))))
-      print(paste0("This is pwi for x: ",  sum_truth_within_interval_counter/(n*p*num_time_test)))
+      #print(paste0("This is mae for x: ",  mean(pred_median_err)))
+      #print(paste0("This is mwi for x: ",  mean(abs(pred_upper_quantile-pred_lower_quantile))))
+      #print(paste0("This is pwi for x: ",  sum_truth_within_interval_counter/(n*p*num_time_test)))
 
       pred_x_result_list<- list(mae_using_median_est = mean(pred_median_err),
                                 proportion_of_within_interval_biomarkers = sum_truth_within_interval_counter/(n*p*num_time_test),
@@ -171,6 +184,16 @@ numerics_summary_do_not_need_alignment<- function(burnin = 0,
                                 pred_lower_quantile =  pred_lower_quantile,
                                 pred_upper_quantile =  pred_upper_quantile,
                                 pred_median_quantile = pred_median_quantile)
+
+    } else {
+
+      pred_x_result_list<- list(pred_lower_quantile =  pred_lower_quantile,
+                                pred_upper_quantile =  pred_upper_quantile,
+                                pred_median_quantile = pred_median_quantile)
+
+    }
+
+  }
 
   ########################################### rhat for phi ###########################################
   rhat_phi<- matrix(0, nrow = p, ncol = 3)
@@ -185,13 +208,13 @@ numerics_summary_do_not_need_alignment<- function(burnin = 0,
 
     rhat_phi[ row_index_phi, 1]<- biomarker_index
 
-    mh.list1<-   list(as.mcmc(pred_x_final_array[time_index, biomarker_index, person_index, keep_set1,1]),
-                      as.mcmc(pred_x_final_array[time_index, biomarker_index, person_index, keep_set2,1]))
+    mh.list1<-   list(as.mcmc(phi_final_array[biomarker_index, keep_set1,1]),
+                      as.mcmc(phi_final_array[biomarker_index, keep_set2,1]))
 
     for (chain_index in 2:tot_chain){
       mh.list1<- c(mh.list1,
-                   list(as.mcmc(pred_x_final_array[time_index, biomarker_index, person_index, keep_set1,chain_index]),
-                        as.mcmc(pred_x_final_array[time_index, biomarker_index, person_index, keep_set2,chain_index])))
+                   list(as.mcmc(phi_final_array[biomarker_index, keep_set1,chain_index]),
+                        as.mcmc(phi_final_array[biomarker_index, keep_set2,chain_index])))
     }
 
     mh.list <- mcmc.list(mh.list1)
@@ -204,7 +227,7 @@ numerics_summary_do_not_need_alignment<- function(burnin = 0,
   convergence_result_table[convergence_result_table_index, 1]<- round(max(rhat_phi[,2]),2)
   convergence_result_table[convergence_result_table_index, 2]<- round(sum((rhat_phi[,2])>1.2)/row_index_phi,2)
 
-  print(paste0("This is convergence summary for phi: ",  convergence_result_table[convergence_result_table_index,]))
+  # print(paste0("This is convergence summary for phi: ",  convergence_result_table[convergence_result_table_index,]))
 
   if (ind_x){
 
@@ -223,13 +246,13 @@ numerics_summary_do_not_need_alignment<- function(burnin = 0,
         rhat_pred_individual_mean[row_index_individual_mean,1]<- person_index
         rhat_pred_individual_mean[row_index_individual_mean,2]<- biomarker_index
 
-        mh.list1<-   list(as.mcmc(pred_x_final_array[time_index, biomarker_index, person_index, keep_set1,1]),
-                          as.mcmc(pred_x_final_array[time_index, biomarker_index, person_index, keep_set2,1]))
+        mh.list1<-   list(as.mcmc(individual_mean_final_array[biomarker_index, person_index, keep_set1,1]),
+                          as.mcmc(individual_mean_final_array[biomarker_index, person_index, keep_set2,1]))
 
         for (chain_index in 2:tot_chain){
           mh.list1<- c(mh.list1,
-                       list(as.mcmc(pred_x_final_array[time_index, biomarker_index, person_index, keep_set1,chain_index]),
-                            as.mcmc(pred_x_final_array[time_index, biomarker_index, person_index, keep_set2,chain_index])))
+                       list(as.mcmc(individual_mean_final_array[biomarker_index, person_index, keep_set1,chain_index]),
+                            as.mcmc(individual_mean_final_array[biomarker_index, person_index, keep_set2,chain_index])))
         }
 
 
@@ -244,7 +267,7 @@ numerics_summary_do_not_need_alignment<- function(burnin = 0,
     convergence_result_table[convergence_result_table_index, 1]<- round(max(rhat_pred_individual_mean[,3]),2)
     convergence_result_table[convergence_result_table_index, 2]<- round(sum((rhat_pred_individual_mean[,3])>1.2)/row_index_individual_mean,2)
 
-    print(paste0("This is convergence summary for individual_mean: ",  convergence_result_table[convergence_result_table_index,]))
+    # print(paste0("This is convergence summary for individual_mean: ",  convergence_result_table[convergence_result_table_index,]))
 
     ########################################### rhat for variance_g ###########################################
     rhat_variance_g<- matrix(0, nrow = p, ncol = 3)
@@ -259,13 +282,13 @@ numerics_summary_do_not_need_alignment<- function(burnin = 0,
 
       rhat_variance_g[ row_index_variance_g, 1]<- biomarker_index
 
-      mh.list1<-   list(as.mcmc(pred_x_final_array[time_index, biomarker_index, person_index, keep_set1,1]),
-                        as.mcmc(pred_x_final_array[time_index, biomarker_index, person_index, keep_set2,1]))
+      mh.list1<-   list(as.mcmc(variance_g_final_array[biomarker_index, keep_set1,1]),
+                        as.mcmc(variance_g_final_array[biomarker_index, keep_set2,1]))
 
       for (chain_index in 2:tot_chain){
         mh.list1<- c(mh.list1,
-                     list(as.mcmc(pred_x_final_array[time_index, biomarker_index, person_index, keep_set1,chain_index]),
-                          as.mcmc(pred_x_final_array[time_index, biomarker_index, person_index, keep_set2,chain_index])))
+                     list(as.mcmc(variance_g_final_array[biomarker_index, keep_set1,chain_index]),
+                          as.mcmc(variance_g_final_array[biomarker_index, keep_set2,chain_index])))
       }
 
       mh.list <- mcmc.list(mh.list1)
@@ -278,13 +301,17 @@ numerics_summary_do_not_need_alignment<- function(burnin = 0,
     convergence_result_table[convergence_result_table_index, 1]<- round(max(rhat_variance_g[,2]),2)
     convergence_result_table[convergence_result_table_index, 2]<- round(sum((rhat_variance_g[,2])>1.2)/row_index_variance_g,2)
 
-    print(paste0("This is convergence summary for variance_g: ",  convergence_result_table[convergence_result_table_index,]))
+    # print(paste0("This is convergence summary for variance_g: ",  convergence_result_table[convergence_result_table_index,]))
   }
 
   ##################################################### return results ##############################################################################
   # pred_x_result_list: point estimate and intervals
-  result_list<- list(convergence_summary = convergence_result_table,
-                     pred_x_result = pred_x_result_list)
+  if (pred_indicator){
+    result_list<- list(convergence_summary = convergence_result_table,
+                       pred_x_result = pred_x_result_list)
+  } else {
+    result_list<- list(convergence_summary = convergence_result_table)
+  }
 
   return(result_list)
 }
