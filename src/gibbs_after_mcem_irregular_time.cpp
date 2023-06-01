@@ -47,7 +47,10 @@ void print_irregular(std::ofstream& file, arma::cube& cube) {
 
 // [[Rcpp::export]]
 arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y,
-                   const List& h3n2_response,
+                   List& h3n2_response,
+                   List& missing_list,
+                   arma::vec& missing_num,
+                   const bool ipt_x,
                    arma::mat& big_a,
                    arma::mat& big_z,
                    arma::vec& phi,
@@ -58,6 +61,7 @@ arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y,
                    const double d1, const double e0, const double f0,
                    const int start_iter,
                    const int iters,
+                   const bool pred_indicator,
                    const bool noise,
                    arma::cube pred_y,
                    arma::cube pred_x,
@@ -76,7 +80,12 @@ arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y,
                    const List& cov_cond_dist,
                    const List& sigmay_inv,
                    const int thin_step,
-                   const int burnin) {
+                   const int burnin,
+                   const arma::mat& sigmay_inv_full,
+                   const int missing_person_num,
+                   const arma::vec& missing_person_index,
+                   const int full_person_num,
+                   const arma::vec& full_person_index) {
 
   // declare this at the beginning - but only open the relevant .csv file under 'prediction'
   std::ofstream f_phi;
@@ -108,6 +117,11 @@ arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y,
       f_variance_g.open("variance_g.csv");
     }
 
+    if (pred_indicator){
+      f_pred_y.open("pred_y.csv");
+      f_pred_x.open("pred_x.csv");
+    }
+
 
   arma::mat retval(1, 1);
 
@@ -123,7 +137,7 @@ arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y,
 
   for (int iter = start_iter; iter < iters; iter++) {
 
-    // Rcout << "this is which iteration of Gibbs sampling:" << iter <<"\n";
+    Rcout << "this is which iteration of Gibbs sampling:" << iter <<"\n";
 
     // Calculate multivariate normal params and take random draws
     // ----------------------------------------------------------
@@ -138,7 +152,7 @@ arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y,
     arma::mat mini_sigma = fast_comp * l_temp;
 
 
-    ///////////////////////////////////// for people with incomplete observations   /////////////////////////////////////
+    if (pred_indicator){
 
       for (int j = 0; j< n; j++){
 
@@ -216,7 +230,7 @@ arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y,
 
             arma::vec h3n2vec = h3n2_response_cube.slice(j).col(iq) - individual_mean.col(j);
 
-              mu_pos[pos++] = as_scalar(fast_comp.row(ik) * h3n2vec);
+            mu_pos[pos++] = as_scalar(fast_comp.row(ik) * h3n2vec);
 
 
           }
@@ -259,6 +273,176 @@ arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y,
         //////////////////////////////////// for factors under prediction: no people have observed gene expressions for this /////////////////
 
       }
+    } else {
+
+
+      ///////////////////////////////////// for people with incomplete observations   /////////////////////////////////////
+
+      if (missing_person_num > 0){
+
+        for (int j = 0; j< missing_person_num; j++){
+
+          // this person's index in the person list (under cpp system)
+
+          int person_index = (missing_person_index[j]-1);
+
+          arma::uvec obs_time_vector_temp(as<arma::uvec>(obs_time_index[person_index]));
+
+          obs_time_vector_temp = obs_time_vector_temp - 1;
+
+          arma::mat sigmay_inv_temp(as<arma::mat>(sigmay_inv[j]));
+
+          arma::mat sigma_pos(sigmay_inv_temp); // initialize the sigma_pos matrix as the matrix sigmay_inv, which is dependent on the common sigmay_inv and the indicator matrix
+
+          arma::mat sigma_posinv(size(sigmay_inv_temp));
+
+          // Expand mini_sigma along the diagonal and add to sigmay_inv
+          for (int x = 0; x < k; x++) {
+            for (int y = 0; y < k; y++) {
+              // Starting point in the output matrix
+              int startx = x * obs_time_num(person_index), starty = y * obs_time_num(person_index);
+              for (int z = 0; z < obs_time_num(person_index); z++)
+                sigma_pos(startx + z, starty + z) += mini_sigma(x, y);
+
+            }
+          }
+
+          // Handle ill-conditioned covariance matrices
+          int tries = 0;
+          // Equiv to sigma_pos = inv(sigma_pos)
+          while (inv(sigma_posinv, sigma_pos) == false) {
+            // inv() returns false if matrix appears to be singular
+            sigma_pos.diag() += 1e-8;
+
+            // Place a limit on the number of retries
+            tries++;
+            if (tries > 3) {
+              Rcout << "Error: Iter " << iter << ": Inverting covariance fails after 3 tries\n";
+              return retval;
+            }
+          }
+
+          // Handle non-symmetry
+          if(! sigma_posinv.is_symmetric(0.01)){
+            Rcout << "Warning: sigma_posinv is not symmetric";
+          }
+
+          sigma_posinv= 0.5*(sigma_posinv + sigma_posinv.t());
+
+          arma::vec mu_pos(k*obs_time_num(person_index));
+
+          int pos = 0;
+
+          // By iterating over q, we can multiply fast_comp by h3n2_response
+          // without expanding or flattening
+
+          for (int ik = 0; ik < k; ik++) {
+            for (int iq = 0; iq < obs_time_num(person_index); iq++) {
+
+              arma::vec h3n2vec = h3n2_response_cube.slice(person_index).col(iq) - individual_mean.col(person_index);
+
+              mu_pos[pos++] = as_scalar(fast_comp.row(ik) * h3n2vec);
+
+            }
+          }
+
+          mu_pos = sigma_posinv * mu_pos;
+
+          arma::mat draw_obs = arma::mvnrnd(mu_pos, sigma_posinv);
+
+          latent_y.slice(person_index).rows(obs_time_vector_temp) = reshape(draw_obs.col(0), obs_time_num(person_index), k);
+
+          ///////////////////////////////////////////// for factors without observed gene expressions ////////////////////////////////////////////////////////////////////////
+          arma::mat prod_covnew_covestinv_temp(as<arma::mat>(prod_covnew_covestinv[j]));
+
+          arma::mat cov_cond_dist_temp(as<arma::mat>(cov_cond_dist[j]));
+
+          // calculate mean vector for the conditional distribution
+
+          arma::vec mean_cond_dist(prod_covnew_covestinv_temp*draw_obs.col(0));
+
+          arma::mat draw_miss = arma::mvnrnd(mean_cond_dist, cov_cond_dist_temp);
+
+          arma::uvec missing_time_vector_temp(as<arma::uvec>(missing_time_index[j])); // uner r system
+
+          missing_time_vector_temp = missing_time_vector_temp - 1; // under c++ system
+
+          latent_y.slice(person_index).rows(missing_time_vector_temp) = reshape(draw_miss.col(0), missing_time_num(j), k);
+
+        }
+
+      }
+
+
+      if (full_person_num > 0 ){
+
+        ///////////////////////////////////// for people with complete observations   /////////////////////////////////////
+        arma::mat sigma_pos(sigmay_inv_full); // initialize the sigma_pos matrix as the matrix sigmay_inv
+
+        arma::mat sigma_posinv(size(sigmay_inv_full));
+
+        // Expand mini_sigma along the diagonal and add to sigmay_inv
+        for (int x = 0; x < k; x++) {
+          for (int y = 0; y < k; y++) {
+            // Starting point in the output matrix
+            int startx = x * q, starty = y * q;
+            for (int z = 0; z < q; z++)
+              sigma_pos(startx + z, starty + z) += mini_sigma(x, y);
+          }
+        }
+
+        // Handle ill-conditioned covariance matrices
+        int tries = 0;
+        // Equiv to sigma_pos = inv(sigma_pos)
+        while (inv(sigma_posinv, sigma_pos) == false) {
+          // inv() returns false if matrix appears to be singular
+          sigma_pos.diag() += 1e-8;
+
+          // Place a limit on the number of retries
+          tries++;
+          if (tries > 3) {
+            Rcout << "Error: Iter " << iter << ": Inverting covariance fails after 3 tries\n";
+            return retval;
+          }
+        }
+
+        // Handle non-symmetry
+        if(! sigma_posinv.is_symmetric(0.01)){
+          Rcout << "Warning: sigma_posinv is not symmetric";
+        }
+
+        sigma_posinv = 0.5*(sigma_posinv + sigma_posinv.t());
+
+        for (int j = 0; j< full_person_num; j++) {
+
+          arma::vec mu_pos(k*q);
+
+          int pos = 0;
+
+          int person_index = (full_person_index[j]-1);
+
+          for (int ik = 0; ik < k; ik++) {
+
+            for (int iq = 0; iq < q; iq++) {
+
+              arma::vec h3n2vec = h3n2_response_cube.slice(person_index).col(iq) - individual_mean.col(person_index);
+
+              mu_pos[pos++] = as_scalar(fast_comp.row(ik) * h3n2vec);
+
+            }
+          }
+
+          mu_pos = sigma_posinv * mu_pos;
+
+          arma::mat draw_obs = arma::mvnrnd(mu_pos, sigma_posinv);
+
+          latent_y.slice(person_index) = reshape(draw_obs.col(0), q, k);
+
+        }
+      }
+
+    }
+
 
     // update matrix z: updated version - block update for one row
     int num_z = pow(2,k);
@@ -513,7 +697,45 @@ arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y,
       }
     }
 
+    // certain positions (i.e., imputed values) in 'h3n2_response_cube' needs to be updated
+    if (ipt_x){
+
+      arma::mat l_temp = big_a % big_z;
+
+      for (int person_index = 0; person_index < n; person_index ++){
+
+        // evaluate if need to be imputed
+        if (missing_num(person_index)>0){
+
+          for (int missing_index = 0; missing_index < missing_num(person_index); missing_index ++){
+
+            arma::mat missing_list_temp(as<arma::mat>(missing_list[person_index]));
+
+            // obtain the position of the NA value
+
+            int row_index = (missing_list_temp(missing_index, 0) - 1); // gene_index
+            int column_index = (missing_list_temp(missing_index, 1) - 1); // time_index
+
+            // mean = l %*% y
+            // latent_y: q,k,n
+            double temp_mean = sum(l_temp.row(row_index) % latent_y.slice(person_index).row(column_index)) +  individual_mean(row_index, person_index); // (1*k) % (1*k)
+
+            // impute using the subject-gene mean
+            h3n2_response_cube[row_index, column_index, person_index] = as<NumericVector>(rnorm(1, temp_mean, sqrt(1/phi(row_index))))[0];
+
+          }
+
+        } else {
+          continue;
+        }
+      }
+
+    }
+
     //////////////////////////////////////////////////// prediction for x using all updates ////////////////////////////////////////////////////////
+
+    if (pred_indicator){
+
       if (noise) {
 
         arma::mat l_temp_updated(big_z % big_a);
@@ -528,11 +750,11 @@ arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y,
 
             arma::mat sigmax(num_time_test,num_time_test,fill::zeros);
 
-            arma::vec vec_temp(num_time_test, fill::ones);
+            arma::vec vec_temp(num_time_test, fill::ones); // a vector of 1
 
-            vec_temp *= 1/phi(biomarker_index);
+            vec_temp *= 1/phi(biomarker_index); // a vector of 1/phi(biomarker_index)
 
-            sigmax.diag() = vec_temp;
+            sigmax.diag() = vec_temp; // variance of the normal distribution
 
             arma::rowvec mean_final_vec_row = mean_final_matrix.row(biomarker_index) + tmp_individual_mean;
 
@@ -568,6 +790,9 @@ arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y,
 
       }
 
+    }
+
+
        ////////////////////////////////////////////////////  save results ////////////////////////////////////////////////////////
       //Rcout << "iter " << iter << endl;
       if (iter % thin_step == 0 && iter > burnin){
@@ -583,8 +808,14 @@ arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y,
 
         // for cubes
         print_irregular(f_latent_y, latent_y);
-        print_irregular(f_pred_y, pred_y);
-        print_irregular(f_pred_x, pred_x);
+
+        if (pred_indicator){
+
+          print_irregular(f_pred_y, pred_y);
+
+          print_irregular(f_pred_x, pred_x);
+
+        }
 
         if (ind_x){
           print_irregular(f_individual_mean, individual_mean);

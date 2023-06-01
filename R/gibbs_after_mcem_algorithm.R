@@ -7,7 +7,8 @@
 #' @param burnin A numeric scalar. Number of iterations to be discarded as 'burn-in'.
 #' @param thin_step A numeric scalar. This function will only save every 'thin_step'th iteration results in the specified directory to reduce storage space needed. Note that this number can be different from that used in the function 'mcem_algorithm'.
 #' @param pathname A character. The directory where the saved Gibbs samplers are stored.
-#' @param test_index Index of test time points in the full time vector.
+#' @param pred_indicator A logical value. pred_indicator = TRUE denotes the need to predict gene expression at new time points. The default value is FALSE.
+#' @param pred_time_index Only needed if pred_indicator = TRUE. Index of the new time points in the full time vector.
 #' @param x  A list of n elements. Each element is a matrix of dimension (p, q_i), storing the gene expression observed at q_i time points for the ith subject.
 #' @param mcem_parameter_setup_result A list of objects returned from the function 'mcem_parameter_setup'.
 #' @param mcem_algorithm_result A list of objects returned from the function 'mcem_algorithm'.
@@ -25,11 +26,12 @@ gibbs_after_mcem_algorithm<- function(chain_index,
                                       burnin,
                                       thin_step,
                                       pathname,
-                                      test_index,
+                                      pred_indicator = FALSE,
+                                      pred_time_index = NULL,
                                       x,
-                                      gibbs_after_mcem_diff_initials_result,
+                                      mcem_parameter_setup_result,
                                       mcem_algorithm_result,
-                                      mcem_parameter_setup_result){
+                                      gibbs_after_mcem_diff_initials_result){
 
   # assign results to objects
   p<- mcem_parameter_setup_result$p
@@ -54,9 +56,11 @@ gibbs_after_mcem_algorithm<- function(chain_index,
   hyper_record<-  mcem_algorithm_result$hyper_record
   prior_sparsity<- mcem_algorithm_result$prior_sparsity
   ig_parameter<- mcem_algorithm_result$ig_parameter
-  obs_gene_vector<- mcem_algorithm_result$obs_gene_vector
-  obs_time_vector<- mcem_algorithm_result$obs_time_vector
+  missing_list <- mcem_algorithm_result$missing_list
+  missing_num<- mcem_algorithm_result$missing_num
+  ipt_x<- mcem_algorithm_result$ipt_x
 
+  # different initials
   y_init <- gibbs_after_mcem_diff_initials_result$y_init_multiple_chains
   a_init <- gibbs_after_mcem_diff_initials_result$a_init_multiple_chains
   z_init <- gibbs_after_mcem_diff_initials_result$z_init_multiple_chains
@@ -95,12 +99,27 @@ gibbs_after_mcem_algorithm<- function(chain_index,
       mu_g<- rep(0, times = p)
   }
 
+  # if pred_indicator = TRUE: no need to do anything to pred_noise because the user must have assigned value to this
 
-    num_time_test<- length(test_index)
+  if (pred_indicator){
+
+    num_time_test<- length(pred_time_index)
 
     pred_y<- array(0, dim=c(num_time_test, k, n))
 
     pred_x<- array(0, dim=c(num_time_test, p, n))
+
+  } else {
+
+    num_time_test<- 0
+
+    # pred_noise<- FALSE # assign it to be different from NULL so that it can be feed into rcpp function
+
+    pred_y<- array(0, dim=c(1, k, n))
+
+    pred_x<- array(0, dim=c(1, p, n))
+
+  }
 
   num_time_all<- (q + num_time_test)
 
@@ -152,6 +171,8 @@ gibbs_after_mcem_algorithm<- function(chain_index,
 
   cov_all_inv<- solve(cov_all)
 
+  if (pred_indicator){
+
     missing_time_num<- rep(0, times =  n)
     missing_time_index <- vector("list",  n)
 
@@ -174,6 +195,38 @@ gibbs_after_mcem_algorithm<- function(chain_index,
       sigmay_inv[[list_index]]<- result$cov_est_inv
 
     }
+
+  } else {
+
+    missing_person_index<- which(obs_time_num!=q)
+    missing_person_num<- length(missing_person_index)
+
+    full_person_index<- which(obs_time_num==q) # index of person who have complete observations
+    full_person_num<- length(full_person_index)
+
+    missing_time_num<- rep(0, times =  missing_person_num)
+    missing_time_index <- vector("list",  missing_person_num)
+
+    prod_covnew_covestinv<- vector("list",  missing_person_num)
+    cov_cond_dist<- vector("list",  missing_person_num)
+    sigmay_inv<- vector("list",  missing_person_num)
+
+    for (list_index in 1:missing_person_num){
+
+      person_index<- missing_person_index[list_index]
+
+      result<- subject_specific_objects(k, num_time_all, a_full, a_person[[person_index]], cov_all)
+
+      # results returned from the algorithm
+      missing_time_num[list_index]<- result$missing_time_num
+      missing_time_index[[list_index]]<- result$missing_time_index
+      prod_covnew_covestinv[[list_index]]<- result$prod_covnew_covestinv
+      cov_cond_dist[[list_index]]<- result$cov_cond_dist
+      sigmay_inv[[list_index]]<- result$cov_est_inv
+
+    }
+
+  }
 
   ##################################################################################################################################
   ################################################################# Constants ######################################################
@@ -203,12 +256,16 @@ gibbs_after_mcem_algorithm<- function(chain_index,
 
   out <- gibbs_after_mcem_irregular_time(latent_y,
                                          x,
+                                         missing_list,
+                                         missing_num,
+                                         ipt_x,
                                          big_a,
                                          big_z,
                                          phi,
                                          pai,
                                          beta,
                                          k, n, p, q, num_time_test, c0, c1, d0, d1, e0, f0, 1, mc_num,
+                                         pred_indicator,
                                           TRUE, pred_y, pred_x, big_z_table, ind_x, individual_mean, mu_g, variance_g, c2, d2,
                                           obs_time_num,
                                           obs_time_index,
@@ -218,8 +275,27 @@ gibbs_after_mcem_algorithm<- function(chain_index,
                                           cov_cond_dist,
                                           sigmay_inv,
                                           thin_step,
-                                          burnin)
+                                          burnin,
+                                         cov_all_inv,
+                                         missing_person_num,
+                                         missing_person_index,
+                                         full_person_num,
+                                         full_person_index)
 
-  # print("Gibbs Sampler Finished.")
+  print("Gibbs Sampler Finished.")
+
+  result_list<- list(p = p,
+                     k = k,
+                     n = n,
+                     q = q,
+                     ind_x = ind_x,
+                     num_time_test = num_time_test,
+                     mc_num = mc_num,
+                     thin_step = thin_step,
+                     pathname = pathname,
+                     burnin = burnin,
+                     pred_indicator = pred_indicator)
+
+  return(result_list)
 
 }

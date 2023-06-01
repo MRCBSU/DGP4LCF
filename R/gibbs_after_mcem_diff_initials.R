@@ -12,7 +12,7 @@
 #'
 #' @return Different initials for multiple chains.
 #' @export
-gibbs_after_mcem_diff_initials<- function(ind_x,
+gibbs_after_mcem_diff_initials<- function(ind_x = TRUE,
                                           tot_chain = 5,
                                           mcem_parameter_setup_result,
                                           mcem_algorithm_result){
@@ -94,9 +94,9 @@ gibbs_after_mcem_diff_initials<- function(ind_x,
     for (gene_index in 1:p){
       for (person_index in 1:n){
 
-        if ((gene_index == 14 && person_index == 12) || (gene_index == 14 && person_index == 69)){
-          next
-        }
+        #if ((gene_index == 14 && person_index == 12) || (gene_index == 14 && person_index == 69)){
+        #  next
+        #}
 
         gene_person_mean_init_multiple_chains[,gene_index,person_index]<- rnorm(tot_chain,
                                                                 mean = gene_person_mean_est[gene_index, person_index],

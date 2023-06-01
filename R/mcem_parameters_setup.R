@@ -83,7 +83,18 @@ mcem_parameter_setup<- function(p, k, n, q, ind_num = 10, burn_in_prop = 0.20, t
 
   full_num<- sum(obs_time_num==q) # how many people have complete observations
 
-  full_index<- which(obs_time_num==q) # index of person who have complete observations
+  if (full_num > 0){
+
+    full_index<- which(obs_time_num==q) # index of person who have complete observations
+
+    a_train_init<- a_train
+
+  } else {
+
+    full_index<- which.max(obs_time_num) # this will list only one person has the maximum number of observations
+    full_num<- 1
+    a_train_init<- a_person[[full_index]]
+  }
 
   col_person_index_combine<- NULL
 
@@ -95,7 +106,7 @@ mcem_parameter_setup<- function(p, k, n, q, ind_num = 10, burn_in_prop = 0.20, t
 
     # transform a vector into a matrix (q*n)
 
-    h3n2_response_gpfda[[l]]<- matrix(as.numeric(y_init[l, col_person_index_combine]), nrow = q, ncol = full_num)
+    h3n2_response_gpfda[[l]]<- matrix(as.numeric(y_init[l, col_person_index_combine]), max(obs_time_num), ncol = full_num)
 
   }
 
@@ -108,7 +119,7 @@ mcem_parameter_setup<- function(p, k, n, q, ind_num = 10, burn_in_prop = 0.20, t
     list_temp <- vector("list", k)
 
     for (list_index in 1:k){
-      list_temp[[list_index]]<- a_train
+      list_temp[[list_index]]<- a_train_init
     }
 
     h3n2_data_dgp$input<- list_temp
@@ -117,7 +128,7 @@ mcem_parameter_setup<- function(p, k, n, q, ind_num = 10, burn_in_prop = 0.20, t
 
     h3n2_data_igp<- list()
 
-    h3n2_data_igp$input<- list(a_train)
+    h3n2_data_igp$input<- list(a_train_init)
   }
 
   ### assign response according to the y
@@ -134,7 +145,32 @@ mcem_parameter_setup<- function(p, k, n, q, ind_num = 10, burn_in_prop = 0.20, t
 
     hyper_record[1,]<- h3n2_res$hyper
 
-    psi_initial <- (cov2cor(h3n2_res$Cov)) # apply the constraint: variance of factors = 1
+
+    if (max(obs_time_num) == q){
+
+      psi_initial <- (cov2cor(h3n2_res$Cov)) # apply the constraint: variance of factors = 1
+
+    } else {
+
+      # need to construct psi_initial using full time
+
+      h3n2_data_dgp_full<- list()
+
+      list_temp <- vector("list", k)
+
+      for (list_index in 1:k){
+
+        list_temp[[list_index]]<- a_train
+
+      }
+
+      h3n2_data_dgp_full$input<- list_temp
+
+      psi_initial<- mgpCovMat(Data = h3n2_data_dgp_full, hp = h3n2_res$hyper)
+
+      psi_initial <- cov2cor(psi_initial)
+
+    }
 
   } else {
 
@@ -154,7 +190,19 @@ mcem_parameter_setup<- function(p, k, n, q, ind_num = 10, burn_in_prop = 0.20, t
 
       hyper_record[1,j,]<- res_temp$hyper
 
-      cov_matrix[((j-1)*q+1):(j*q),((j-1)*q+1):(j*q)]<- res_temp$Cov
+      if (max(obs_time_num) == q){
+
+        cov_matrix[((j-1)*q+1):(j*q),((j-1)*q+1):(j*q)]<- res_temp$Cov
+
+      } else {
+
+        h3n2_data_igp_full<- list()
+
+        h3n2_data_igp_full$input<- list(a_train)
+
+        cov_matrix[((j-1)*q+1):(j*q),((j-1)*q+1):(j*q)]<- mgpCovMat(Data = h3n2_data_igp_full, hp = res_temp$hyper)
+
+      }
     }
 
     psi_initial <- cov2cor(cov_matrix)
@@ -170,7 +218,7 @@ mcem_parameter_setup<- function(p, k, n, q, ind_num = 10, burn_in_prop = 0.20, t
 
   sigmay_inv_record[1,,]<- solve(sigmay_record[1,,])
 
-  ################################################################# assign initial values to DGP parameters ######################################################
+  # ################################################################# assign initial values to DGP parameters ######################################################
 
   ################################################### assign initial values to other parameters in the model #################################################
 

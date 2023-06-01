@@ -9,6 +9,9 @@
 #' @param iter_count_num A numeric scalar. Maximum number of increasing the sample size; a larger number than this would end the algorithm.
 #' @param x  A list of n elements. Each element is a matrix of dimension (p, q_i), storing the gene expression observed at q_i time points for the ith subject.
 #' @param mcem_parameter_setup_result A list of objects returned from the function 'mcem_parameter_setup'.
+#' @param ipx_x A logical value. ind_x = TRUE denotes the need to impute for NAs of gene expression. The default value is ind_x = FALSE.
+#' @param missing_num A vector of n elements. Each element corresponds to a single person's number of NAs that needs imputation.
+#' @param missing_list A list of n elements. Each element is a matrix of dimension (missing_num, 2): each row corresponds to the position of one NA that needs imputation; first and second columns denote the row and column indexes, respectively, of the NA in the corresponding person's matrix of gene expression.
 #'
 #' @examples
 #' # See examples in vignette
@@ -23,7 +26,10 @@ mcem_algorithm<- function(ind_x,
                           prob_conf_interval = 0.90,
                           iter_count_num = 5,
                           x,
-                          mcem_parameter_setup_result){
+                          mcem_parameter_setup_result,
+                          ipt_x = FALSE,
+                          missing_list = NULL,
+                          missing_num = NULL){
 
   ################################################################################################################################################
   ############################################ preparation for running the main body of the algorithm ############################################
@@ -59,13 +65,17 @@ mcem_algorithm<- function(ind_x,
   sigmay_inv_record <- mcem_parameter_setup_result$sigmay_inv_record
 
   if (ind_x){
+
     individual_mean_in <- mcem_parameter_setup_result$individual_mean_in
     variance_g <- mcem_parameter_setup_result$variance_g
     mu_g <- mcem_parameter_setup_result$mu_g
+
   } else {
+
     individual_mean_in <- matrix(0, nrow = p, ncol = n)
     variance_g<- rep(0, times = p)
     mu_g<- rep(0, times = p)
+
   }
 
   # remove mcem_parameter_setup_result after assignment finished
@@ -107,7 +117,50 @@ mcem_algorithm<- function(ind_x,
    h3n2_data_igp$input<- list(a_train)
   }
 
+  # if (ipt_x){
+  #
+  #   ########################################### obtain NA positions and count the number ###########################################
+  #   missing_list<- vector("list", n)
+  #   missing_num<- rep(0, times = n)
+  #
+  #   for (person_index in 1:n){
+  #
+  #     missing_list[[person_index]]<- which(is.na(x[[person_index]]),
+  #                                          arr.ind = TRUE)
+  #
+  #     missing_num[person_index]<- nrow(which(is.na(x[[person_index]]),
+  #                                            arr.ind = TRUE))
+  #   }
+  #
+  #   ########################################### impute for x using subject-gene mean (initialization) ###########################################
+  #   x_impute<- x
+  #
+  #   for (person_index in 1:n){
+  #     if (missing_num[person_index] > 0){
+  #       for (missing_index in 1:missing_num[person_index]){
+  #
+  #         # obtain the position of the NA value
+  #         row_index<- missing_list[[person_index]][missing_index,1]
+  #         column_index<- missing_list[[person_index]][missing_index,2]
+  #
+  #         # calculate subject-gene mean
+  #         temp_mean<- mean(x[[person_index]][row_index,],na.rm = TRUE)
+  #
+  #         # impute using the subject-gene mean
+  #         x_impute[[person_index]][row_index, column_index]<- temp_mean
+  #
+  #       }
+  #     } else {
+  #       next
+  #     }
+  #   }
+  #
+  #   x<- x_impute
+  #
+  # }
+
   # if ind_x = TRUE, just keep the original scale
+
   # if ind_x = FALSE, meaning that the model does not include the intercept term, then need to use center_within_individual_x
 
   if (!ind_x){
@@ -124,91 +177,6 @@ mcem_algorithm<- function(ind_x,
     x<- x_center_within_individual
 
   }
-
-  # for fit into the new parameter requirements by rcpp function
-
-    x_cube<- array(0, dim = c(p, q, n))
-
-    for (time_index in 1:q){
-      for (person_index in 1:n){
-
-        if (time_index %in% obs_time_index[[person_index]]){
-          # if this person has observations at this time index, decide its sub-index within this person
-          # for example, time index 4 is the 3rd in the 1st person's time ranking
-          time_sub_index <- which(time_index == obs_time_index[[person_index]])
-
-          x_cube[,time_index, person_index]<- x[[person_index]][,time_sub_index] # it a gene is NA at this time point, then this NA will be automatically passed.
-
-        } else {
-
-          x_cube[,time_index, person_index]<- NA
-
-        }
-      }
-    }
-
-    # create obs_gene_vector: for each subject-time, observed genes
-
-    pos<- 0
-
-    obs_gene_vector<- vector("list", sum(obs_time_num))
-
-    count_gene_vector_null<- 0
-
-    for (person_index in 1:n){
-
-      for (time_index in obs_time_index[[person_index]]){
-
-        pos = pos + 1
-
-        obs_gene_vector[[pos]]<- which(!is.na(x_cube[, time_index, person_index]))
-
-        if (identical(which(!is.na(x_cube[, time_index, person_index])), integer(0))){
-
-          count_gene_vector_null<-  count_gene_vector_null + 1
-
-        }
-
-      }
-
-    }
-
-    # create obs_time_vector: for each subject-gene, observed time points
-
-    pos<- 0
-
-    obs_time_vector<- vector("list", (p*n))
-
-    count_time_vector_null<- 0
-
-    obs_time_vector_null_index<- NULL
-
-    obs_time_vector_null_person_index<- NULL
-
-    obs_time_vector_null_gene_index<- NULL
-
-    for (gene_index in 1:p){
-
-      for (person_index in 1:n){
-
-        pos = pos + 1
-
-        obs_time_vector[[pos]]<- which(!is.na(x_cube[gene_index, , person_index]))
-
-        if (identical(which(!is.na(x_cube[gene_index, , person_index])), integer(0))){
-
-          count_time_vector_null<-  count_time_vector_null + 1
-
-          obs_time_vector_null_index<- c(obs_time_vector_null_index, pos)
-
-          obs_time_vector_null_person_index<- c(obs_time_vector_null_person_index, person_index)
-
-          obs_time_vector_null_gene_index<- c(obs_time_vector_null_gene_index, gene_index)
-        }
-
-      }
-
-    }
 
   # column names for applying rsa_exact algorithm
   col_name<- rep(0, times = (p*k))
@@ -326,7 +294,14 @@ mcem_algorithm<- function(ind_x,
         }
       }
 
-        out <- gibbs_within_mcem_irregular_time(latent_y, x, big_a, big_z, phi, pai, beta, k, n, p, q, c0, c1, d0, d1, e0, f0, mc_num_old, mc_num,
+      # x: a list of n elements, each element is a p*q_i matrix
+      # missing_list: tells the positions of imputed values that needs to be updated in each Gibbs iteration
+
+        out <-
+          gibbs_within_mcem_irregular_time(latent_y,
+                                           x,
+                                           missing_list, missing_num, ipt_x,
+                                                big_a, big_z, phi, pai, beta, k, n, p, q, c0, c1, d0, d1, e0, f0, mc_num_old, mc_num,
                       big_z_table, ind_x, individual_mean_in, mu_g, variance_g, c2, d2,
                       obs_time_num,
                       obs_time_index,
@@ -340,6 +315,7 @@ mcem_algorithm<- function(ind_x,
                       missing_person_index,
                       full_person_num,
                       full_person_index)
+
         # print("Gibbs Sampler Finished.")
 
 
@@ -501,8 +477,9 @@ mcem_algorithm<- function(ind_x,
                      sigmay_inv_record = sigmay_inv_record,
                      prior_sparsity = prior_sparsity,
                      ig_parameter = ig_parameter,
-                     obs_gene_vector = obs_gene_vector,
-                     obs_time_vector = obs_time_vector)
+                     missing_list = missing_list,
+                     missing_num = missing_num,
+                     ipt_x = ipt_x)
   return(result_list)
 }
 

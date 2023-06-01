@@ -15,7 +15,10 @@ using std::endl;
 
 // [[Rcpp::export]]
 arma::mat gibbs_within_mcem_irregular_time(List& latent_y_in,
-                   const List& h3n2_response,
+                   List& h3n2_response,
+                   List& missing_list,
+                   arma::vec& missing_num,
+                   const bool ipt_x,
                    List& big_a_in,
                    List& big_z_in,
                    arma::vec& phi,
@@ -54,7 +57,11 @@ arma::mat gibbs_within_mcem_irregular_time(List& latent_y_in,
   NumericVector latent_y_tmp = latent_y_in[0];
   arma::cube latent_y(latent_y_tmp.begin(), q, k, n);
 
-  // note that everytime we use this, need to ensure time index is labelled!!
+  /////////////////////////// note that everytime we use this, need to ensure time index is labelled!! ///////////////////////////////////
+
+  // initialisation of 'h3n2_response_cube'
+  // if ipt_x = FALSE: it will be constant
+  // if ipt_x = TRUE : it will change across iterations
 
   arma::cube h3n2_response_cube(p, q, n);
 
@@ -491,6 +498,41 @@ arma::mat gibbs_within_mcem_irregular_time(List& latent_y_in,
 
 
       }
+    }
+
+    // certain positions (i.e., imputed values) in 'h3n2_response_cube' needs to be updated
+    if (ipt_x){
+
+      arma::mat l_temp = big_a % big_z;
+
+      for (int person_index = 0; person_index < n; person_index ++){
+
+         // evaluate if need to be imputed
+         if (missing_num(person_index)>0){
+
+           for (int missing_index = 0; missing_index < missing_num(person_index); missing_index ++){
+
+             arma::mat missing_list_temp(as<arma::mat>(missing_list[person_index]));
+
+             // obtain the position of the NA value
+
+             int row_index = (missing_list_temp(missing_index, 0) - 1); // gene_index
+             int column_index = (missing_list_temp(missing_index, 1) - 1); // time_index
+
+             // mean = l %*% y
+             // latent_y: q,k,n
+             double temp_mean = sum(l_temp.row(row_index) % latent_y.slice(person_index).row(column_index)) +  individual_mean(row_index, person_index); // (1*k) % (1*k)
+
+             // impute using the subject-gene mean
+             h3n2_response_cube[row_index, column_index, person_index] = as<NumericVector>(rnorm(1, temp_mean, sqrt(1/phi(row_index))))[0];
+
+           }
+
+         } else {
+           continue;
+         }
+      }
+
     }
 
     // Copy matrices to output lists

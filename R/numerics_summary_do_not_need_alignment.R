@@ -4,7 +4,7 @@
 #'
 #' @param burnin A numeric scalar. The saved samples are already after burnin; therefore the default value for this parameter here is 0. Can discard further samples if needed.
 #' @param thin_step A numeric scalar. The saved samples are already after thinning; therefore the default value for this parameter here is 1. Can be further thinned if needed.
-#' @param pred_x_truth_inidcator A logical value. pred_x_truth_indicator = TRUE means that truth of predicted gene expressions are available, otherwise not.
+#' @param pred_x_truth_inidcator A logical value. pred_x_truth_indicator = TRUE means that truth of predicted gene expressions are available. The default value is FALSE.
 #' @param pred_x_truth Only needed if pred_x_truth_inidcator = TRUE. An array of dimension (n, p, num_time_test), storing true gene expressions in the testing data.
 #' @param gibbs_after_mcem_combine_chains_result A list of objects returned from the function 'gibbs_after_mcem_combine_chains'.
 #'
@@ -16,7 +16,7 @@
 #' @export
 numerics_summary_do_not_need_alignment<- function(burnin = 0,
                                                   thin_step = 1,
-                                                  pred_x_truth_indicator,
+                                                  pred_x_truth_indicator = FALSE,
                                                   pred_x_truth = NULL,
                                                   gibbs_after_mcem_combine_chains_result){
 

@@ -310,7 +310,7 @@ numerics_summary_need_alignment<- function(burnin = 0,
   convergence_result_table[convergence_result_table_index,1]<- round(max(rhat_l[-row_index_l_excluded,3]),2)
   convergence_result_table[convergence_result_table_index,2]<- round(sum((rhat_l[-row_index_l_excluded,3])>1.2)/(row_index_l-length(row_index_l_excluded)),2)
 
-  print(paste0("This is convergence summary for latent_y: ",  convergence_result_table[convergence_result_table_index,]))
+  print(paste0("This is convergence summary for rhat_l: ",  convergence_result_table[convergence_result_table_index,]))
 
   ########################################### convergence assessment and posterior summary for factor scores y ###########################################
   rhat_y<- matrix(0, nrow = (n*k*num_time_all), ncol = 5)

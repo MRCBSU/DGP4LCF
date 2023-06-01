@@ -5,8 +5,7 @@
 #'
 #' @examples
 #' # See examples in vignette
-#' vignette("bsfadgp_regular_data_example", package = "DGP4LCF")
-#' vignette("bsfadgp_irregular_data_example", package = "DGP4LCF")
+#' vignette("bsfadgp_regular_data_example", package = "bsfadgp")
 #'
 #' @return All saved posterior samples for parameters in the model and predicted gene expressions.
 #' @export
@@ -24,6 +23,7 @@ gibbs_after_mcem_combine_chains<- function(tot_chain,
   thin_step =  gibbs_after_mcem_algorithm_result$thin_step
   pathname =  gibbs_after_mcem_algorithm_result$pathname
   burnin = gibbs_after_mcem_algorithm_result$burnin
+  pred_indicator = gibbs_after_mcem_algorithm_result$pred_indicator
 
   # remove finish assignment
   rm(gibbs_after_mcem_algorithm_result)
@@ -54,11 +54,13 @@ gibbs_after_mcem_combine_chains<- function(tot_chain,
 
   }
 
+  if (pred_indicator){
 
-  pred_y_final_array<- array(0,dim=c(num_time_test,k,n,(num_sample),tot_chain))
+    pred_y_final_array<- array(0,dim=c(num_time_test,k,n,(num_sample),tot_chain))
 
-  pred_x_final_array<- array(0,dim=c(num_time_test,p,n,(num_sample),tot_chain))
+    pred_x_final_array<- array(0,dim=c(num_time_test,p,n,(num_sample),tot_chain))
 
+  }
 
   for (chain_index in 1:tot_chain){
 
@@ -85,17 +87,17 @@ gibbs_after_mcem_combine_chains<- function(tot_chain,
       variance_g_final_array[,,chain_index]<- gibbs_after_mcem_load_chains_result$variance_g
     }
 
-
+    if (pred_indicator){
 
       pred_x_final_array[,,,,chain_index]<- gibbs_after_mcem_load_chains_result$pred_x
 
       pred_y_final_array[,,,,chain_index]<- gibbs_after_mcem_load_chains_result$pred_y
 
-
+    }
 
   }
 
-  if(ind_x){
+  if(ind_x & pred_indicator){
 
     result_list<- list(pred_x = pred_x_final_array,
                        pred_y = pred_y_final_array,
@@ -114,9 +116,10 @@ gibbs_after_mcem_combine_chains<- function(tot_chain,
                        q = q,
                        num_time_test = num_time_test,
                        tot_chain = tot_chain,
-                       ind_x = ind_x)
+                       ind_x = ind_x,
+                       pred_indicator = pred_indicator)
 
-  } else if (!ind_x){
+  } else if (!ind_x & pred_indicator){
 
     result_list<- list(pred_x = pred_x_final_array,
                        pred_y = pred_y_final_array,
@@ -133,7 +136,46 @@ gibbs_after_mcem_combine_chains<- function(tot_chain,
                        q = q,
                        num_time_test = num_time_test,
                        tot_chain = tot_chain,
-                       ind_x = ind_x)
+                       ind_x = ind_x,
+                       pred_indicator = pred_indicator)
+
+  } else if (ind_x & !pred_indicator){
+
+    result_list<- list(latent_y = latent_y_final_array,
+                       big_z = big_z_final_array,
+                       big_a = big_a_final_array,
+                       pai = pai_final_array,
+                       phi = phi_final_array,
+                       beta = beta_final_array,
+                       individual_mean = individual_mean_final_array,
+                       variance_g = variance_g_final_array,
+                       num_sample = num_sample,
+                       p = p,
+                       k = k,
+                       n = n,
+                       q = q,
+                       num_time_test = num_time_test,
+                       tot_chain = tot_chain,
+                       ind_x = ind_x,
+                       pred_indicator = pred_indicator)
+
+  } else {
+
+    result_list<- list(latent_y = latent_y_final_array,
+                       big_z = big_z_final_array,
+                       big_a = big_a_final_array,
+                       pai = pai_final_array,
+                       phi = phi_final_array,
+                       beta = beta_final_array,
+                       num_sample = num_sample,
+                       p = p,
+                       k = k,
+                       n = n,
+                       q = q,
+                       num_time_test = num_time_test,
+                       tot_chain = tot_chain,
+                       ind_x = ind_x,
+                       pred_indicator = pred_indicator)
 
   }
 

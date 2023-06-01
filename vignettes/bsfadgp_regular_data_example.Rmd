@@ -105,13 +105,13 @@ for (chain_index in 1:tot_chain){
                                             burnin = 3000,
                                             thin_step = 10 ,
                                             pathname = "path/to/folder",
-                                            test_index = (9:10),
+                                            pred_indicator = TRUE,
+                                            pred_time_index = (9:10),
                                             x = observed_x_train_regular_8,
                                             gibbs_after_mcem_diff_initials_result = gibbs_after_mcem_diff_initials_result,
                                             mcem_algorithm_result = mcem_algorithm_result,
                                             mcem_parameter_setup_result = mcem_parameter_setup_result)
 }
-
 
 ```
 
@@ -130,7 +130,8 @@ constant_list<- list(num_time_test = 2,
                      k = 4,
                      n = 17,
                      q = 8,
-                     ind_x = TRUE)
+                     ind_x = TRUE,
+                     pred_indicator = TRUE)
 
 for (chain_index in 1:tot_chain){
 
@@ -151,7 +152,9 @@ When it comes to the posterior analysis, we first focus on the continuous variab
 ```{r, eval = FALSE}
 numerics_summary_do_not_need_alignment_result<-
   numerics_summary_do_not_need_alignment(pred_x_truth =  sim_fcs_truth$observed_x_pred_reformat,
+                                            pred_x_truth_indicator = TRUE,
                                          gibbs_after_mcem_combine_chains_result =  gibbs_after_mcem_combine_chains_result)
+
 ```
 
 The convergence assessment result can be printed as:

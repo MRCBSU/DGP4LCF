@@ -5,8 +5,7 @@
 #'
 #' @examples
 #' # See examples in vignette
-#' vignette("bsfadgp_regular_data_example", package = "DGP4LCF")
-#' vignette("bsfadgp_irregular_data_example", package = "DGP4LCF")
+#' vignette("bsfadgp_regular_data_example", package = "bsfadgp")
 #'
 #' @return All saved posterior samples for parameters in the model and predicted gene expressions.
 #' @export
@@ -24,6 +23,7 @@ gibbs_after_mcem_load_chains<- function(chain_index,
   thin_step =  gibbs_after_mcem_algorithm_result$thin_step
   pathname =  gibbs_after_mcem_algorithm_result$pathname
   burnin = gibbs_after_mcem_algorithm_result$burnin
+  pred_indicator = gibbs_after_mcem_algorithm_result$pred_indicator
 
   # remove finish assignment
   rm(gibbs_after_mcem_algorithm_result)
@@ -34,7 +34,7 @@ gibbs_after_mcem_load_chains<- function(chain_index,
 
   ######################################## create empty containers ##################################################################################
 
-  num_sample<- ((mc_num - burnin)/thin_step) - 1
+  num_sample<- (mc_num - burnin)/thin_step - 1
 
   big_a_final_array<- array(0,dim=c(p,k,(num_sample)))
 
@@ -51,11 +51,12 @@ gibbs_after_mcem_load_chains<- function(chain_index,
 
   }
 
+  if (pred_indicator){
 
     pred_x_final_array<- array(0,dim=c(num_time_test,p,n,(num_sample)))
 
     pred_y_final_array<- array(0,dim=c(num_time_test,k,n,(num_sample)))
-
+  }
 
   ######################################## load results from chains ##################################################################################
 
@@ -109,7 +110,7 @@ gibbs_after_mcem_load_chains<- function(chain_index,
 
   }
 
-
+  if (pred_indicator){
 
     pred_y_unshaped_scan <- scan(file = "pred_y.csv", sep = ",")
     # pred_y_unshaped<- matrix(pred_y_unshaped_scan[(burnin*(num_time_test*k*n+1) + 1):(num_sample*(num_time_test*k*n+1))], nrow = (num_sample-burnin), ncol = (num_time_test*k*n+1), byrow = T)
@@ -118,7 +119,7 @@ gibbs_after_mcem_load_chains<- function(chain_index,
     pred_x_unshaped_scan <- scan(file = "pred_x.csv", sep = ",")
     # pred_x_unshaped<- matrix(pred_x_unshaped_scan[(burnin*(num_time_test*p*n+1) + 1):(num_sample*(num_time_test*p*n+1))], nrow = (num_sample-burnin), ncol = (num_time_test*p*n+1), byrow = T)
     pred_x_unshaped<- matrix(pred_x_unshaped_scan[(1):(num_sample*(num_time_test*p*n+1))], nrow = (num_sample), ncol = (num_time_test*p*n+1), byrow = T)
-
+  }
 
   print(paste0("this is to save the result for which chain:",chain_index))
 
@@ -134,13 +135,13 @@ gibbs_after_mcem_load_chains<- function(chain_index,
       individual_mean_final_array[,,i]<- matrix(as.numeric(individual_mean_unshaped[i, -(p*n+1)]), nrow=p, ncol=n,byrow=T)
     }
 
-
+    if (pred_indicator){
 
       pred_y_final_array[,,,i]<- array(as.numeric(pred_y_unshaped[i, -(num_time_test*k*n+1)]), dim = c(num_time_test,k,n))
 
       pred_x_final_array[,,,i]<- array(as.numeric(pred_x_unshaped[i, -(num_time_test*p*n+1)]), dim = c(num_time_test,p,n))
 
-
+    }
 
   }
 
@@ -149,7 +150,7 @@ gibbs_after_mcem_load_chains<- function(chain_index,
   ###################################################################################################################################################
 
   # combined samples from all chains
-  if(ind_x){
+  if(ind_x & pred_indicator){
     result_list<- list(pred_x = pred_x_final_array,
                        pred_y = pred_y_final_array,
                        latent_y = latent_y_final_array,
@@ -162,10 +163,32 @@ gibbs_after_mcem_load_chains<- function(chain_index,
                        variance_g = variance_g_final_array,
                        num_sample = num_sample)
 
-  } else if (!ind_x){
+  } else if (!ind_x & pred_indicator){
     result_list<- list(pred_x = pred_x_final_array,
                        pred_y = pred_y_final_array,
                        latent_y = latent_y_final_array,
+                       big_z = big_z_final_array,
+                       big_a = big_a_final_array,
+                       pai = pai_final_array,
+                       phi = phi_final_array,
+                       beta = beta_final_array,
+                       num_sample = num_sample)
+
+  } else if (ind_x & !pred_indicator){
+
+    result_list<- list(latent_y = latent_y_final_array,
+                       big_z = big_z_final_array,
+                       big_a = big_a_final_array,
+                       pai = pai_final_array,
+                       phi = phi_final_array,
+                       beta = beta_final_array,
+                       individual_mean = individual_mean_final_array,
+                       variance_g = variance_g_final_array,
+                       num_sample = num_sample)
+
+  } else {
+
+    result_list<- list(latent_y = latent_y_final_array,
                        big_z = big_z_final_array,
                        big_a = big_a_final_array,
                        pai = pai_final_array,
