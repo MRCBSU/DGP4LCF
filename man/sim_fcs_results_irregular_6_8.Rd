@@ -5,7 +5,7 @@
 \alias{sim_fcs_results_irregular_6_8}
 \title{Results when people have irregularly observed time points (some 6 while others 8).}
 \format{
-An object of class \code{list} of length 4.
+An object of class \code{list} of length 3.
 }
 \usage{
 sim_fcs_results_irregular_6_8

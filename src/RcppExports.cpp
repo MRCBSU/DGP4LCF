@@ -12,13 +12,16 @@ Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
 // gibbs_after_mcem_irregular_time
-arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y, const List& h3n2_response, arma::mat& big_a, arma::mat& big_z, arma::vec& phi, arma::vec& pai, arma::vec& beta, const int k, const int n, const int p, const int q, const int num_time_test, const double c0, const double c1, const double d0, const double d1, const double e0, const double f0, const int start_iter, const int iters, const bool noise, arma::cube pred_y, arma::cube pred_x, const arma::mat& big_z_table, const bool ind_x, arma::mat individual_mean, const arma::vec& mu_g, arma::vec& variance_g, const double c2, const double d2, const arma::vec& obs_time_num, const List& obs_time_index, const arma::vec& missing_time_num, const List& missing_time_index, const List& prod_covnew_covestinv, const List& cov_cond_dist, const List& sigmay_inv, const int thin_step, const int burnin);
-RcppExport SEXP _DGP4LCF_gibbs_after_mcem_irregular_time(SEXP latent_ySEXP, SEXP h3n2_responseSEXP, SEXP big_aSEXP, SEXP big_zSEXP, SEXP phiSEXP, SEXP paiSEXP, SEXP betaSEXP, SEXP kSEXP, SEXP nSEXP, SEXP pSEXP, SEXP qSEXP, SEXP num_time_testSEXP, SEXP c0SEXP, SEXP c1SEXP, SEXP d0SEXP, SEXP d1SEXP, SEXP e0SEXP, SEXP f0SEXP, SEXP start_iterSEXP, SEXP itersSEXP, SEXP noiseSEXP, SEXP pred_ySEXP, SEXP pred_xSEXP, SEXP big_z_tableSEXP, SEXP ind_xSEXP, SEXP individual_meanSEXP, SEXP mu_gSEXP, SEXP variance_gSEXP, SEXP c2SEXP, SEXP d2SEXP, SEXP obs_time_numSEXP, SEXP obs_time_indexSEXP, SEXP missing_time_numSEXP, SEXP missing_time_indexSEXP, SEXP prod_covnew_covestinvSEXP, SEXP cov_cond_distSEXP, SEXP sigmay_invSEXP, SEXP thin_stepSEXP, SEXP burninSEXP) {
+arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y, List& h3n2_response, List& missing_list, arma::vec& missing_num, const bool ipt_x, arma::mat& big_a, arma::mat& big_z, arma::vec& phi, arma::vec& pai, arma::vec& beta, const int k, const int n, const int p, const int q, const int num_time_test, const double c0, const double c1, const double d0, const double d1, const double e0, const double f0, const int start_iter, const int iters, const bool pred_indicator, const bool noise, arma::cube pred_y, arma::cube pred_x, const arma::mat& big_z_table, const bool ind_x, arma::mat individual_mean, const arma::vec& mu_g, arma::vec& variance_g, const double c2, const double d2, const arma::vec& obs_time_num, const List& obs_time_index, const arma::vec& missing_time_num, const List& missing_time_index, const List& prod_covnew_covestinv, const List& cov_cond_dist, const List& sigmay_inv, const int thin_step, const int burnin, const arma::mat& sigmay_inv_full, const int missing_person_num, const arma::vec& missing_person_index, const int full_person_num, const arma::vec& full_person_index);
+RcppExport SEXP _DGP4LCF_gibbs_after_mcem_irregular_time(SEXP latent_ySEXP, SEXP h3n2_responseSEXP, SEXP missing_listSEXP, SEXP missing_numSEXP, SEXP ipt_xSEXP, SEXP big_aSEXP, SEXP big_zSEXP, SEXP phiSEXP, SEXP paiSEXP, SEXP betaSEXP, SEXP kSEXP, SEXP nSEXP, SEXP pSEXP, SEXP qSEXP, SEXP num_time_testSEXP, SEXP c0SEXP, SEXP c1SEXP, SEXP d0SEXP, SEXP d1SEXP, SEXP e0SEXP, SEXP f0SEXP, SEXP start_iterSEXP, SEXP itersSEXP, SEXP pred_indicatorSEXP, SEXP noiseSEXP, SEXP pred_ySEXP, SEXP pred_xSEXP, SEXP big_z_tableSEXP, SEXP ind_xSEXP, SEXP individual_meanSEXP, SEXP mu_gSEXP, SEXP variance_gSEXP, SEXP c2SEXP, SEXP d2SEXP, SEXP obs_time_numSEXP, SEXP obs_time_indexSEXP, SEXP missing_time_numSEXP, SEXP missing_time_indexSEXP, SEXP prod_covnew_covestinvSEXP, SEXP cov_cond_distSEXP, SEXP sigmay_invSEXP, SEXP thin_stepSEXP, SEXP burninSEXP, SEXP sigmay_inv_fullSEXP, SEXP missing_person_numSEXP, SEXP missing_person_indexSEXP, SEXP full_person_numSEXP, SEXP full_person_indexSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< arma::cube >::type latent_y(latent_ySEXP);
-    Rcpp::traits::input_parameter< const List& >::type h3n2_response(h3n2_responseSEXP);
+    Rcpp::traits::input_parameter< List& >::type h3n2_response(h3n2_responseSEXP);
+    Rcpp::traits::input_parameter< List& >::type missing_list(missing_listSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type missing_num(missing_numSEXP);
+    Rcpp::traits::input_parameter< const bool >::type ipt_x(ipt_xSEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type big_a(big_aSEXP);
     Rcpp::traits::input_parameter< arma::mat& >::type big_z(big_zSEXP);
     Rcpp::traits::input_parameter< arma::vec& >::type phi(phiSEXP);
@@ -37,6 +40,7 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const double >::type f0(f0SEXP);
     Rcpp::traits::input_parameter< const int >::type start_iter(start_iterSEXP);
     Rcpp::traits::input_parameter< const int >::type iters(itersSEXP);
+    Rcpp::traits::input_parameter< const bool >::type pred_indicator(pred_indicatorSEXP);
     Rcpp::traits::input_parameter< const bool >::type noise(noiseSEXP);
     Rcpp::traits::input_parameter< arma::cube >::type pred_y(pred_ySEXP);
     Rcpp::traits::input_parameter< arma::cube >::type pred_x(pred_xSEXP);
@@ -56,18 +60,26 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const List& >::type sigmay_inv(sigmay_invSEXP);
     Rcpp::traits::input_parameter< const int >::type thin_step(thin_stepSEXP);
     Rcpp::traits::input_parameter< const int >::type burnin(burninSEXP);
-    rcpp_result_gen = Rcpp::wrap(gibbs_after_mcem_irregular_time(latent_y, h3n2_response, big_a, big_z, phi, pai, beta, k, n, p, q, num_time_test, c0, c1, d0, d1, e0, f0, start_iter, iters, noise, pred_y, pred_x, big_z_table, ind_x, individual_mean, mu_g, variance_g, c2, d2, obs_time_num, obs_time_index, missing_time_num, missing_time_index, prod_covnew_covestinv, cov_cond_dist, sigmay_inv, thin_step, burnin));
+    Rcpp::traits::input_parameter< const arma::mat& >::type sigmay_inv_full(sigmay_inv_fullSEXP);
+    Rcpp::traits::input_parameter< const int >::type missing_person_num(missing_person_numSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type missing_person_index(missing_person_indexSEXP);
+    Rcpp::traits::input_parameter< const int >::type full_person_num(full_person_numSEXP);
+    Rcpp::traits::input_parameter< const arma::vec& >::type full_person_index(full_person_indexSEXP);
+    rcpp_result_gen = Rcpp::wrap(gibbs_after_mcem_irregular_time(latent_y, h3n2_response, missing_list, missing_num, ipt_x, big_a, big_z, phi, pai, beta, k, n, p, q, num_time_test, c0, c1, d0, d1, e0, f0, start_iter, iters, pred_indicator, noise, pred_y, pred_x, big_z_table, ind_x, individual_mean, mu_g, variance_g, c2, d2, obs_time_num, obs_time_index, missing_time_num, missing_time_index, prod_covnew_covestinv, cov_cond_dist, sigmay_inv, thin_step, burnin, sigmay_inv_full, missing_person_num, missing_person_index, full_person_num, full_person_index));
     return rcpp_result_gen;
 END_RCPP
 }
 // gibbs_within_mcem_irregular_time
-arma::mat gibbs_within_mcem_irregular_time(List& latent_y_in, const List& h3n2_response, List& big_a_in, List& big_z_in, arma::vec& phi, arma::vec& pai, arma::vec& beta, const int k, const int n, const int p, const int q, const double c0, const double c1, const double d0, const double d1, const double e0, const double f0, const int start_iter, const int iters, const arma::mat& big_z_table, const bool ind_x, arma::mat individual_mean, const arma::vec& mu_g, arma::vec& variance_g, const double c2, const double d2, const arma::vec& obs_time_num, const List& obs_time_index, const arma::mat& sigmay_inv_full, const arma::vec& missing_time_num, const List& missing_time_index, const List& prod_covnew_covestinv, const List& cov_cond_dist, const List& sigmay_inv, const int missing_person_num, const arma::vec& missing_person_index, const int full_person_num, const arma::vec& full_person_index);
-RcppExport SEXP _DGP4LCF_gibbs_within_mcem_irregular_time(SEXP latent_y_inSEXP, SEXP h3n2_responseSEXP, SEXP big_a_inSEXP, SEXP big_z_inSEXP, SEXP phiSEXP, SEXP paiSEXP, SEXP betaSEXP, SEXP kSEXP, SEXP nSEXP, SEXP pSEXP, SEXP qSEXP, SEXP c0SEXP, SEXP c1SEXP, SEXP d0SEXP, SEXP d1SEXP, SEXP e0SEXP, SEXP f0SEXP, SEXP start_iterSEXP, SEXP itersSEXP, SEXP big_z_tableSEXP, SEXP ind_xSEXP, SEXP individual_meanSEXP, SEXP mu_gSEXP, SEXP variance_gSEXP, SEXP c2SEXP, SEXP d2SEXP, SEXP obs_time_numSEXP, SEXP obs_time_indexSEXP, SEXP sigmay_inv_fullSEXP, SEXP missing_time_numSEXP, SEXP missing_time_indexSEXP, SEXP prod_covnew_covestinvSEXP, SEXP cov_cond_distSEXP, SEXP sigmay_invSEXP, SEXP missing_person_numSEXP, SEXP missing_person_indexSEXP, SEXP full_person_numSEXP, SEXP full_person_indexSEXP) {
+arma::mat gibbs_within_mcem_irregular_time(List& latent_y_in, List& h3n2_response, List& missing_list, arma::vec& missing_num, const bool ipt_x, List& big_a_in, List& big_z_in, arma::vec& phi, arma::vec& pai, arma::vec& beta, const int k, const int n, const int p, const int q, const double c0, const double c1, const double d0, const double d1, const double e0, const double f0, const int start_iter, const int iters, const arma::mat& big_z_table, const bool ind_x, arma::mat individual_mean, const arma::vec& mu_g, arma::vec& variance_g, const double c2, const double d2, const arma::vec& obs_time_num, const List& obs_time_index, const arma::mat& sigmay_inv_full, const arma::vec& missing_time_num, const List& missing_time_index, const List& prod_covnew_covestinv, const List& cov_cond_dist, const List& sigmay_inv, const int missing_person_num, const arma::vec& missing_person_index, const int full_person_num, const arma::vec& full_person_index);
+RcppExport SEXP _DGP4LCF_gibbs_within_mcem_irregular_time(SEXP latent_y_inSEXP, SEXP h3n2_responseSEXP, SEXP missing_listSEXP, SEXP missing_numSEXP, SEXP ipt_xSEXP, SEXP big_a_inSEXP, SEXP big_z_inSEXP, SEXP phiSEXP, SEXP paiSEXP, SEXP betaSEXP, SEXP kSEXP, SEXP nSEXP, SEXP pSEXP, SEXP qSEXP, SEXP c0SEXP, SEXP c1SEXP, SEXP d0SEXP, SEXP d1SEXP, SEXP e0SEXP, SEXP f0SEXP, SEXP start_iterSEXP, SEXP itersSEXP, SEXP big_z_tableSEXP, SEXP ind_xSEXP, SEXP individual_meanSEXP, SEXP mu_gSEXP, SEXP variance_gSEXP, SEXP c2SEXP, SEXP d2SEXP, SEXP obs_time_numSEXP, SEXP obs_time_indexSEXP, SEXP sigmay_inv_fullSEXP, SEXP missing_time_numSEXP, SEXP missing_time_indexSEXP, SEXP prod_covnew_covestinvSEXP, SEXP cov_cond_distSEXP, SEXP sigmay_invSEXP, SEXP missing_person_numSEXP, SEXP missing_person_indexSEXP, SEXP full_person_numSEXP, SEXP full_person_indexSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< List& >::type latent_y_in(latent_y_inSEXP);
-    Rcpp::traits::input_parameter< const List& >::type h3n2_response(h3n2_responseSEXP);
+    Rcpp::traits::input_parameter< List& >::type h3n2_response(h3n2_responseSEXP);
+    Rcpp::traits::input_parameter< List& >::type missing_list(missing_listSEXP);
+    Rcpp::traits::input_parameter< arma::vec& >::type missing_num(missing_numSEXP);
+    Rcpp::traits::input_parameter< const bool >::type ipt_x(ipt_xSEXP);
     Rcpp::traits::input_parameter< List& >::type big_a_in(big_a_inSEXP);
     Rcpp::traits::input_parameter< List& >::type big_z_in(big_z_inSEXP);
     Rcpp::traits::input_parameter< arma::vec& >::type phi(phiSEXP);
@@ -104,14 +116,14 @@ BEGIN_RCPP
     Rcpp::traits::input_parameter< const arma::vec& >::type missing_person_index(missing_person_indexSEXP);
     Rcpp::traits::input_parameter< const int >::type full_person_num(full_person_numSEXP);
     Rcpp::traits::input_parameter< const arma::vec& >::type full_person_index(full_person_indexSEXP);
-    rcpp_result_gen = Rcpp::wrap(gibbs_within_mcem_irregular_time(latent_y_in, h3n2_response, big_a_in, big_z_in, phi, pai, beta, k, n, p, q, c0, c1, d0, d1, e0, f0, start_iter, iters, big_z_table, ind_x, individual_mean, mu_g, variance_g, c2, d2, obs_time_num, obs_time_index, sigmay_inv_full, missing_time_num, missing_time_index, prod_covnew_covestinv, cov_cond_dist, sigmay_inv, missing_person_num, missing_person_index, full_person_num, full_person_index));
+    rcpp_result_gen = Rcpp::wrap(gibbs_within_mcem_irregular_time(latent_y_in, h3n2_response, missing_list, missing_num, ipt_x, big_a_in, big_z_in, phi, pai, beta, k, n, p, q, c0, c1, d0, d1, e0, f0, start_iter, iters, big_z_table, ind_x, individual_mean, mu_g, variance_g, c2, d2, obs_time_num, obs_time_index, sigmay_inv_full, missing_time_num, missing_time_index, prod_covnew_covestinv, cov_cond_dist, sigmay_inv, missing_person_num, missing_person_index, full_person_num, full_person_index));
     return rcpp_result_gen;
 END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
-    {"_DGP4LCF_gibbs_after_mcem_irregular_time", (DL_FUNC) &_DGP4LCF_gibbs_after_mcem_irregular_time, 39},
-    {"_DGP4LCF_gibbs_within_mcem_irregular_time", (DL_FUNC) &_DGP4LCF_gibbs_within_mcem_irregular_time, 38},
+    {"_DGP4LCF_gibbs_after_mcem_irregular_time", (DL_FUNC) &_DGP4LCF_gibbs_after_mcem_irregular_time, 48},
+    {"_DGP4LCF_gibbs_within_mcem_irregular_time", (DL_FUNC) &_DGP4LCF_gibbs_within_mcem_irregular_time, 41},
     {NULL, NULL, 0}
 };
 

@@ -21,7 +21,7 @@ factor_score_trajectory(
 
 \item{trajectory_title}{A character. Title for the factor trajectory plot.}
 
-\item{cex_main.}{A numeric scalar. Text size of the title.}
+\item{cex_main}{A numeric scalar. Text size of the title.}
 }
 \value{
 Trajectory of the designated person-factor.

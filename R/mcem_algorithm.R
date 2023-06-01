@@ -9,7 +9,7 @@
 #' @param iter_count_num A numeric scalar. Maximum number of increasing the sample size; a larger number than this would end the algorithm.
 #' @param x  A list of n elements. Each element is a matrix of dimension (p, q_i), storing the gene expression observed at q_i time points for the ith subject.
 #' @param mcem_parameter_setup_result A list of objects returned from the function 'mcem_parameter_setup'.
-#' @param ipx_x A logical value. ind_x = TRUE denotes the need to impute for NAs of gene expression. The default value is ind_x = FALSE.
+#' @param ipt_x A logical value. ind_x = TRUE denotes the need to impute for NAs of gene expression. The default value is ind_x = FALSE.
 #' @param missing_num A vector of n elements. Each element corresponds to a single person's number of NAs that needs imputation.
 #' @param missing_list A list of n elements. Each element is a matrix of dimension (missing_num, 2): each row corresponds to the position of one NA that needs imputation; first and second columns denote the row and column indexes, respectively, of the NA in the corresponding person's matrix of gene expression.
 #'

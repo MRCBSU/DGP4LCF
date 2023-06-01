@@ -10,11 +10,12 @@ gibbs_after_mcem_algorithm(
   burnin,
   thin_step,
   pathname,
-  test_index,
+  pred_indicator = FALSE,
+  pred_time_index = NULL,
   x,
-  gibbs_after_mcem_diff_initials_result,
+  mcem_parameter_setup_result,
   mcem_algorithm_result,
-  mcem_parameter_setup_result
+  gibbs_after_mcem_diff_initials_result
 )
 }
 \arguments{
@@ -28,15 +29,17 @@ gibbs_after_mcem_algorithm(
 
 \item{pathname}{A character. The directory where the saved Gibbs samplers are stored.}
 
-\item{test_index}{Index of test time points in the full time vector.}
+\item{pred_indicator}{A logical value. pred_indicator = TRUE denotes the need to predict gene expression at new time points. The default value is FALSE.}
+
+\item{pred_time_index}{Only needed if pred_indicator = TRUE. Index of the new time points in the full time vector.}
 
 \item{x}{A list of n elements. Each element is a matrix of dimension (p, q_i), storing the gene expression observed at q_i time points for the ith subject.}
 
-\item{gibbs_after_mcem_diff_initials_result}{A list of objects returned from the function 'gibbs_after_mcem_diff_initials'.}
+\item{mcem_parameter_setup_result}{A list of objects returned from the function 'mcem_parameter_setup'.}
 
 \item{mcem_algorithm_result}{A list of objects returned from the function 'mcem_algorithm'.}
 
-\item{mcem_parameter_setup_result}{A list of objects returned from the function 'mcem_parameter_setup'.}
+\item{gibbs_after_mcem_diff_initials_result}{A list of objects returned from the function 'gibbs_after_mcem_diff_initials'.}
 }
 \value{
 Posterior samples for parameters (other than DGP parameters) in the model and predicted gene expression for one chain.

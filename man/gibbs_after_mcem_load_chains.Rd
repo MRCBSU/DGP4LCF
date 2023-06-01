@@ -19,7 +19,6 @@ Loading the saved posterior samples for parameters in the model and predicted ge
 }
 \examples{
 # See examples in vignette
-vignette("bsfadgp_regular_data_example", package = "DGP4LCF")
-vignette("bsfadgp_irregular_data_example", package = "DGP4LCF")
+vignette("bsfadgp_regular_data_example",  package = "DGP4LCF")
 
 }

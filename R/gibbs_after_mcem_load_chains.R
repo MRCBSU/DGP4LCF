@@ -5,7 +5,7 @@
 #'
 #' @examples
 #' # See examples in vignette
-#' vignette("bsfadgp_regular_data_example", package = "bsfadgp")
+#' vignette("bsfadgp_regular_data_example",  package = "DGP4LCF")
 #'
 #' @return All saved posterior samples for parameters in the model and predicted gene expressions.
 #' @export

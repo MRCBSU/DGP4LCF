@@ -67,7 +67,7 @@ mcem_parameter_setup(
 
 \item{train_index}{A q-dimensional column vector. Index of time points used in the training data.}
 
-\item{x}{A list of n elements. Each element is a matrix of dimension (p, n_i), storing the gene expressions for the ith subject.}
+\item{x}{A list of n elements. Each element is a matrix of dimension (p, q_i), storing the gene expressions for the ith subject.}
 
 \item{model_dgp}{A logical value. model_dgp = TRUE (default setting) uses the Dependent Gaussian Process to model latent factor trajectories, otherwise the Independent Gaussian Process is used.}
 }

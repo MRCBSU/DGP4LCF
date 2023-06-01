@@ -5,7 +5,7 @@
 #'
 #' @examples
 #' # See examples in vignette
-#' vignette("bsfadgp_regular_data_example", package = "bsfadgp")
+#' vignette("bsfadgp_regular_data_example", package = "DGP4LCF")
 #'
 #' @return All saved posterior samples for parameters in the model and predicted gene expressions.
 #' @export
@@ -67,6 +67,8 @@ gibbs_after_mcem_combine_chains<- function(tot_chain,
     filename = paste0(pathname,"/","chain_", chain_index,"_result.RData")
 
     load(file = filename)
+
+    # gibbs_after_mcem_load_chains_result<- get(filename) # get the object based on its name
 
     latent_y_final_array[,,,,chain_index]<- gibbs_after_mcem_load_chains_result$latent_y
 

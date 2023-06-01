@@ -7,7 +7,8 @@
 numerics_summary_do_not_need_alignment(
   burnin = 0,
   thin_step = 1,
-  pred_x_truth,
+  pred_x_truth_indicator = FALSE,
+  pred_x_truth = NULL,
   gibbs_after_mcem_combine_chains_result
 )
 }
@@ -16,12 +17,14 @@ numerics_summary_do_not_need_alignment(
 
 \item{thin_step}{A numeric scalar. The saved samples are already after thinning; therefore the default value for this parameter here is 1. Can be further thinned if needed.}
 
-\item{pred_x_truth}{An array of dimension (n, p, num_time_test), storing true gene expression in the testing data.}
+\item{pred_x_truth_indicator}{A logical value. pred_x_truth_indicator = TRUE means that truth of predicted gene expressions are available. The default value is FALSE.}
+
+\item{pred_x_truth}{Only needed if pred_x_truth_inidcator = TRUE. An array of dimension (n, p, num_time_test), storing true gene expressions in the testing data.}
 
 \item{gibbs_after_mcem_combine_chains_result}{A list of objects returned from the function 'gibbs_after_mcem_combine_chains'.}
 }
 \value{
-Convergence assessment for important continuous variables that do not need alignment, and posterior summary for predicted gene expression.
+Convergence assessment for important continuous variables that do not need alignment, and posterior summary for predicted gene expressions.
 }
 \description{
 Numerical summary for important continuous variables that do not need alignment.
@@ -31,7 +34,6 @@ This function corresponds to Algorithm 2: Steps 3 and 4 in the main manuscript; 
 }
 \examples{
 # See examples in vignette
-vignette("bsfadgp_regular_data_example", package = "DGP4LCF")
-vignette("bsfadgp_irregular_data_example", package = "DGP4LCF")
+vignette("bsfadgp_regular_data_example",  package = "DGP4LCF")
 
 }

@@ -20,6 +20,5 @@ Combining from all chains the posterior samples for parameters in the model and 
 \examples{
 # See examples in vignette
 vignette("bsfadgp_regular_data_example", package = "DGP4LCF")
-vignette("bsfadgp_irregular_data_example", package = "DGP4LCF")
 
 }

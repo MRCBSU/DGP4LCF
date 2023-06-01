@@ -5,7 +5,7 @@
 \alias{sim_fcs_results_regular_8}
 \title{Results when people are observed at common 8 time points.}
 \format{
-An object of class \code{list} of length 4.
+An object of class \code{list} of length 3.
 }
 \usage{
 sim_fcs_results_regular_8

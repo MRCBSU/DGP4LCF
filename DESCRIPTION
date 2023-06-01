@@ -1,10 +1,10 @@
 Package: DGP4LCF
 Type: Package
-Title: Modeling Interactive Biological Pathways From High-Dimensional Gene Expression Trajectories Using Dependent Gaussian Processes
-Version: 0.1.0
+Title: Dependent Gaussian Processes for Longitudinal Correlated Factors
+Version: 1.0.0
 Maintainer: Jiachen Cai <jiachen.cai@mrc-bsu.cam.ac.uk>
-Author: person("Jiachen", "Cai", email = "jiachen.cai@mrc-bsu.cam.ac.uk")
-Description: This package implements the BSFA-DGP model proposed in the paper.
+Authors@R: person("Jiachen", "Cai", email = "jiachen.cai@mrc-bsu.cam.ac.uk", role = c("aut", "cre"))
+Description: This package implements a novel methodology to model high-dimensional gene expression trajectories.
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true

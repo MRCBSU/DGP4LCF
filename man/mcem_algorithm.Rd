@@ -11,7 +11,10 @@ mcem_algorithm(
   prob_conf_interval = 0.9,
   iter_count_num = 5,
   x,
-  mcem_parameter_setup_result
+  mcem_parameter_setup_result,
+  ipt_x = FALSE,
+  missing_list = NULL,
+  missing_num = NULL
 )
 }
 \arguments{
@@ -28,6 +31,12 @@ mcem_algorithm(
 \item{x}{A list of n elements. Each element is a matrix of dimension (p, q_i), storing the gene expression observed at q_i time points for the ith subject.}
 
 \item{mcem_parameter_setup_result}{A list of objects returned from the function 'mcem_parameter_setup'.}
+
+\item{ipt_x}{A logical value. ind_x = TRUE denotes the need to impute for NAs of gene expression. The default value is ind_x = FALSE.}
+
+\item{missing_list}{A list of n elements. Each element is a matrix of dimension (missing_num, 2): each row corresponds to the position of one NA that needs imputation; first and second columns denote the row and column indexes, respectively, of the NA in the corresponding person's matrix of gene expression.}
+
+\item{missing_num}{A vector of n elements. Each element corresponds to a single person's number of NAs that needs imputation.}
 }
 \value{
 The MLE of DGP parameters.

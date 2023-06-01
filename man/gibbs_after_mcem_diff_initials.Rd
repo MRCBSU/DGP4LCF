@@ -5,7 +5,7 @@
 \title{Generating different initials for multiple chains.}
 \usage{
 gibbs_after_mcem_diff_initials(
-  ind_x,
+  ind_x = TRUE,
   tot_chain = 5,
   mcem_parameter_setup_result,
   mcem_algorithm_result
