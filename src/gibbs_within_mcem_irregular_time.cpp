@@ -524,7 +524,7 @@ arma::mat gibbs_within_mcem_irregular_time(List& latent_y_in,
              double temp_mean = sum(l_temp.row(row_index) % latent_y.slice(person_index).row(column_index)) +  individual_mean(row_index, person_index); // (1*k) % (1*k)
 
              // impute using the subject-gene mean
-             h3n2_response_cube[row_index, column_index, person_index] = as<NumericVector>(rnorm(1, temp_mean, sqrt(1/phi(row_index))))[0];
+             h3n2_response_cube(row_index, column_index, person_index) = as<NumericVector>(rnorm(1, temp_mean, sqrt(1/phi(row_index))))[0];
 
            }
 

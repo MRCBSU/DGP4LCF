@@ -30,7 +30,7 @@ void print_irregular(std::ofstream& file, arma::mat& mat) {
       // Rcout << row << "," << col;
       file << std::setprecision(9) << std::fixed << mat(i, j) << ",";
     }
-    file << std::endl;
+  file << std::endl;
 }
 
 // self-define a function that can: save cube results into a .csv file - for latent_y
@@ -721,7 +721,7 @@ arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y,
             double temp_mean = sum(l_temp.row(row_index) % latent_y.slice(person_index).row(column_index)) +  individual_mean(row_index, person_index); // (1*k) % (1*k)
 
             // impute using the subject-gene mean
-            h3n2_response_cube[row_index, column_index, person_index] = as<NumericVector>(rnorm(1, temp_mean, sqrt(1/phi(row_index))))[0];
+            h3n2_response_cube(row_index, column_index, person_index) = as<NumericVector>(rnorm(1, temp_mean, sqrt(1/phi(row_index))))[0];
 
           }
 
