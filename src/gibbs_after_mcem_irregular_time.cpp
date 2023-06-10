@@ -109,18 +109,21 @@ arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y,
     f_big_z.open("big_z.csv");
 
     f_latent_y.open("latent_y.csv");
-    f_pred_y.open("pred_y.csv");
-    f_pred_x.open("pred_x.csv");
 
-    if (ind_x){
+    // if (ind_x){
+
       f_individual_mean.open("individual_mean.csv");
-      f_variance_g.open("variance_g.csv");
-    }
 
-    if (pred_indicator){
+      f_variance_g.open("variance_g.csv");
+
+   // }
+
+   // if (pred_indicator){
       f_pred_y.open("pred_y.csv");
       f_pred_x.open("pred_x.csv");
-    }
+
+      // Rcout << "this is pred_indicator:" << pred_indicator <<"\n";
+   // }
 
 
   arma::mat retval(1, 1);
@@ -767,6 +770,8 @@ arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y,
           }
         }
 
+        // Rcout << "this is pred_x:" << pred_x <<"\n";
+
       } else {
 
         arma::mat l_temp_updated(big_z % big_a);
@@ -809,18 +814,21 @@ arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y,
         // for cubes
         print_irregular(f_latent_y, latent_y);
 
-        if (pred_indicator){
+        //if (pred_indicator){
 
           print_irregular(f_pred_y, pred_y);
 
           print_irregular(f_pred_x, pred_x);
 
-        }
+       // }
 
-        if (ind_x){
+        //if (ind_x){
+
           print_irregular(f_individual_mean, individual_mean);
+
           print_irregular(f_variance_g, variance_g);
-        }
+
+        //}
 
       }
 

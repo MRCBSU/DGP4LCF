@@ -73,7 +73,7 @@ arma::mat gibbs_within_mcem_irregular_time(List& latent_y_in,
 
   for (int iter = start_iter; iter < iters; iter++) {
 
-    // Rcout << "this is which iteration of Gibbs sampling:" << iter <<"\n";
+    Rcout << "this is which iteration of Gibbs sampling:" << iter <<"\n";
 
     // Calculate multivariate normal params and take random draws
     // ----------------------------------------------------------
@@ -162,22 +162,38 @@ arma::mat gibbs_within_mcem_irregular_time(List& latent_y_in,
 
         latent_y.slice(person_index).rows(obs_time_vector_temp) = reshape(draw_obs.col(0), obs_time_num(person_index), k);
 
+        // Rcout << "this is which person:" << person_index <<"\n";
+
         ///////////////////////////////////////////// for factors without observed gene expressions ////////////////////////////////////////////////////////////////////////
         arma::mat prod_covnew_covestinv_temp(as<arma::mat>(prod_covnew_covestinv[j]));
 
+        // Rcout << "prod_covnew_covestinv_temp:" << prod_covnew_covestinv_temp <<"\n";
+
         arma::mat cov_cond_dist_temp(as<arma::mat>(cov_cond_dist[j]));
+
+        // Rcout << "cov_cond_dist_temp:" << cov_cond_dist_temp <<"\n";
 
         // calculate mean vector for the conditional distribution
 
         arma::vec mean_cond_dist(prod_covnew_covestinv_temp*draw_obs.col(0));
 
+        // Rcout << "mean_cond_dist:" << mean_cond_dist <<"\n";
+
         arma::mat draw_miss = arma::mvnrnd(mean_cond_dist, cov_cond_dist_temp);
+
+        // Rcout << "draw_miss:" << draw_miss <<"\n";
 
         arma::uvec missing_time_vector_temp(as<arma::uvec>(missing_time_index[j])); // uner r system
 
+        // Rcout << "missing_time_vector_temp:" << missing_time_vector_temp <<"\n";
+
         missing_time_vector_temp = missing_time_vector_temp - 1; // under c++ system
 
+        // Rcout << "this is missing_time_vector_temp:" << missing_time_vector_temp <<"\n";
+
         latent_y.slice(person_index).rows(missing_time_vector_temp) = reshape(draw_miss.col(0), missing_time_num(j), k);
+
+        // Rcout << "this is latent_y.slice(person_index).rows(missing_time_vector_temp):" << latent_y.slice(person_index).rows(missing_time_vector_temp) <<"\n";
 
       }
 
@@ -247,6 +263,8 @@ arma::mat gibbs_within_mcem_irregular_time(List& latent_y_in,
         arma::mat draw_obs = arma::mvnrnd(mu_pos, sigma_posinv);
 
         latent_y.slice(person_index) = reshape(draw_obs.col(0), q, k);
+
+        // Rcout << "this is which person:" << person_index <<"\n";
 
       }
     }
@@ -325,6 +343,7 @@ arma::mat gibbs_within_mcem_irregular_time(List& latent_y_in,
 
     }
 
+    // Rcout << "this is big_z:" <<"\n";
 
     // Update matrix a
     // ---------------
@@ -422,6 +441,8 @@ arma::mat gibbs_within_mcem_irregular_time(List& latent_y_in,
       pai(j) = R::rbeta(e, f);
     }
 
+    // Rcout << "this is pai:" <<"\n";
+
     // Update beta
     double beta_c = c1 + (0.5*p);
 
@@ -432,6 +453,8 @@ arma::mat gibbs_within_mcem_irregular_time(List& latent_y_in,
       beta(j) = R::rgamma(beta_c, 1.0/beta_d);
 
     }
+
+    // Rcout << "this is beta:" <<"\n";
 
     // Update phi
 
@@ -459,6 +482,7 @@ arma::mat gibbs_within_mcem_irregular_time(List& latent_y_in,
       phi(g) = R::rgamma(phi_c, 1.0/phi_d);
     } // phi is (inverse) of (variance)
 
+    // Rcout << "this is phi:" <<"\n";
 
     // update v_{g,i}, which is a p*n matrix, therefore can be treated like big_a and big_z
 
@@ -531,6 +555,11 @@ arma::mat gibbs_within_mcem_irregular_time(List& latent_y_in,
          } else {
            continue;
          }
+
+         // check if the ipt_x is doing its job - pass the test
+         //if (person_index == 65){
+         //   Rcout << "this is h3n2_response_cube for this person:" << h3n2_response_cube.slice(person_index).col(7) <<"\n";
+         //}
       }
 
     }

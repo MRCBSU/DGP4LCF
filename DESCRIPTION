@@ -4,7 +4,7 @@ Title: Dependent Gaussian Processes for Longitudinal Correlated Factors
 Version: 1.0.0
 Maintainer: Jiachen Cai <jiachen.cai@mrc-bsu.cam.ac.uk>
 Authors@R: person("Jiachen", "Cai", email = "jiachen.cai@mrc-bsu.cam.ac.uk", role = c("aut", "cre"))
-Description: This package implements a novel methodology to model high-dimensional gene expression trajectories.
+Description: Model high-dimensional gene expression trajectories using dynamic factor analysis with dependent gaussian processes
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
@@ -12,7 +12,6 @@ RoxygenNote: 7.2.3
 Imports: 
     GPFDA,
     Rcpp,
-    RcppArmadillo,
     factor.switching,
     mvtnorm,
     combinat,

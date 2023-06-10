@@ -173,6 +173,13 @@ gibbs_after_mcem_algorithm<- function(chain_index,
 
   if (pred_indicator){
 
+    # if need to do prediction, then all people can be viewed as having 'missing observations' (i.e., observations at prediction time points)
+    missing_person_index<- (1:n)
+    missing_person_num<- n
+
+    full_person_index<- vector()
+    full_person_num<- 0
+
     missing_time_num<- rep(0, times =  n)
     missing_time_index <- vector("list",  n)
 

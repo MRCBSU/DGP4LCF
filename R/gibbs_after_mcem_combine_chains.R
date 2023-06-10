@@ -62,6 +62,8 @@ gibbs_after_mcem_combine_chains<- function(tot_chain,
 
   }
 
+  gibbs_after_mcem_load_chains_result<- NULL
+
   for (chain_index in 1:tot_chain){
 
     filename = paste0(pathname,"/","chain_", chain_index,"_result.RData")
