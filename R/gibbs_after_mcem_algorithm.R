@@ -241,11 +241,59 @@ gibbs_after_mcem_algorithm<- function(chain_index,
 
   big_z_table<- as.matrix(table_generator(k))
 
-  # Rcpp::sourceCpp('~/bsfadgp/src/gibbs_after_mcem_irregular_time.cpp')
+  ### this is the path where the .csv files will be saved to
+  # check if the provided pathname exists (if not: print error and create one)
+  if (dir.exists(pathname)){
+    directory_name = paste0(pathname, "/gibbs_after_mcem_chain_", chain_index,"/")
+    dir.create(directory_name)
+  } else {
+    print("The provided pathname does not exist. Have created one now.")
+    dir.create(pathname)
 
-  directory_name = paste0(pathname, "/gibbs_after_mcem_chain_", chain_index)
-  dir.create(directory_name)
-  setwd(directory_name)
+    directory_name = paste0(pathname, "/gibbs_after_mcem_chain_", chain_index,"/")
+    dir.create(directory_name)
+  }
+
+  # check if this is the first time to save .csv files; if not, print warnings.
+  if (file.exists(paste0(directory_name,"phi.csv"))){
+    warning("There is phi.csv existing already. Be aware that it is going to be overwritten before proceeding.")
+  }
+
+  if (file.exists(paste0(directory_name,"pai.csv"))){
+    warning("There is pai.csv existing already. Be aware that it is going to be overwritten before proceeding.")
+  }
+
+  if (file.exists(paste0(directory_name,"beta.csv"))){
+    warning("There is beta.csv existing already. Be aware that it is going to be overwritten before proceeding.")
+  }
+
+  if (file.exists(paste0(directory_name,"big_a.csv"))){
+    warning("There is big_a.csv existing already. Be aware that it is going to be overwritten before proceeding.")
+  }
+
+  if (file.exists(paste0(directory_name,"big_z.csv"))){
+    warning("There is big_z.csv existing already. Be aware that it is going to be overwritten before proceeding.")
+  }
+
+  if (file.exists(paste0(directory_name,"latent_y.csv"))){
+    warning("There is latent_y.csv existing already. Be aware that it is going to be overwritten before proceeding.")
+  }
+
+  if (file.exists(paste0(directory_name,"individual_mean.csv"))){
+    warning("There is individual_mean.csv existing already. Be aware that it is going to be overwritten before proceeding.")
+  }
+
+  if (file.exists(paste0(directory_name,"variance_g.csv"))){
+    warning("There is variance_g.csv existing already. Be aware that it is going to be overwritten before proceeding.")
+  }
+
+  if (file.exists(paste0(directory_name,"pred_y.csv"))){
+    warning("There is pred_y.csv existing already. Be aware that it is going to be overwritten before proceeding.")
+  }
+
+  if (file.exists(paste0(directory_name,"pred_x.csv"))){
+    warning("There is pred_x.csv existing already. Be aware that it is going to be overwritten before proceeding.")
+  }
 
   c0<- ig_parameter
   d0<- ig_parameter
@@ -287,7 +335,8 @@ gibbs_after_mcem_algorithm<- function(chain_index,
                                          missing_person_num,
                                          missing_person_index,
                                          full_person_num,
-                                         full_person_index)
+                                         full_person_index,
+                                         directory_name)
 
   print("Gibbs Sampler Finished.")
 

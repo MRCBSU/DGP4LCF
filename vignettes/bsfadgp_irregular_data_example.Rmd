@@ -85,7 +85,7 @@ for (chain_index in 1:tot_chain){
                                             mc_num = 10000,
                                             burnin = 3000,
                                             thin_step = 10 ,
-                                            pathname = "/path/to/folder",
+                                            pathname = "path",
                                             pred_indicator = TRUE,
                                             pred_time_index = (9:10),
                                             x = sim_fcs_truth$observed_x_train_irregular,
@@ -104,7 +104,7 @@ constant_list<- list(num_time_test = 2,
                      mc_num = 10000,
                      thin_step = 10,
                      burnin = 3000,
-                     pathname = "/path/to/folder",
+                     pathname = "path",
                      p = 100,
                      k = 4,
                      n = 17,
@@ -118,7 +118,7 @@ for (chain_index in 1:tot_chain){
                                                                      gibbs_after_mcem_algorithm_result = constant_list)
 
   save(gibbs_after_mcem_load_chains_result,
-       file = paste0("/path/to/folder/chain_", chain_index,"_result.RData"))
+       file = paste0("path/chain_", chain_index,"_result.RData"))
   
 }
 

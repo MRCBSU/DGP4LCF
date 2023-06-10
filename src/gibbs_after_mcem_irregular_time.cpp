@@ -85,7 +85,8 @@ arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y,
                    const int missing_person_num,
                    const arma::vec& missing_person_index,
                    const int full_person_num,
-                   const arma::vec& full_person_index) {
+                   const arma::vec& full_person_index,
+                   String directory_name) {
 
   // declare this at the beginning - but only open the relevant .csv file under 'prediction'
   std::ofstream f_phi;
@@ -102,29 +103,35 @@ arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y,
   // set printing precision at the beginning of the file
   Rcout.precision(10);
 
-    f_phi.open("phi.csv");
-    f_pai.open("pai.csv");
-    f_beta.open("beta.csv");
-    f_big_a.open("big_a.csv");
-    f_big_z.open("big_z.csv");
+    String dir_phi = directory_name;
+    f_phi.open(dir_phi+="phi.csv");
 
-    f_latent_y.open("latent_y.csv");
+    String dir_pai = directory_name;
+    f_pai.open(dir_pai+="pai.csv");
 
-    // if (ind_x){
+    String dir_beta = directory_name;
+    f_beta.open(dir_beta+="beta.csv");
 
-      f_individual_mean.open("individual_mean.csv");
+    String dir_a = directory_name;
+    f_big_a.open(dir_a+= "big_a.csv");
 
-      f_variance_g.open("variance_g.csv");
+    String dir_z = directory_name;
+    f_big_z.open(dir_z+="big_z.csv");
 
-   // }
+    String dir_y = directory_name;
+    f_latent_y.open(dir_y+="latent_y.csv");
 
-   // if (pred_indicator){
-      f_pred_y.open("pred_y.csv");
-      f_pred_x.open("pred_x.csv");
+    String dir_individual_mean = directory_name;
+    f_individual_mean.open(dir_individual_mean+="individual_mean.csv");
 
-      // Rcout << "this is pred_indicator:" << pred_indicator <<"\n";
-   // }
+    String dir_variance_g = directory_name;
+    f_variance_g.open(dir_variance_g+="variance_g.csv");
 
+    String dir_pred_y = directory_name;
+    f_pred_y.open(dir_pred_y+="pred_y.csv");
+
+    String dir_pred_x = directory_name;
+    f_pred_x.open(dir_pred_x+="pred_x.csv");
 
   arma::mat retval(1, 1);
 
