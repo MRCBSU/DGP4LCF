@@ -147,7 +147,7 @@ arma::mat gibbs_after_mcem_irregular_time(arma::cube latent_y,
 
   for (int iter = start_iter; iter < iters; iter++) {
 
-    Rcout << "this is which iteration of Gibbs sampling:" << iter <<"\n";
+    // Rcout << "this is which iteration of Gibbs sampling:" << iter <<"\n";
 
     // Calculate multivariate normal params and take random draws
     // ----------------------------------------------------------

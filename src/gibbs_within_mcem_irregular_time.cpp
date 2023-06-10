@@ -73,7 +73,7 @@ arma::mat gibbs_within_mcem_irregular_time(List& latent_y_in,
 
   for (int iter = start_iter; iter < iters; iter++) {
 
-    Rcout << "this is which iteration of Gibbs sampling:" << iter <<"\n";
+    // Rcout << "this is which iteration of Gibbs sampling:" << iter <<"\n";
 
     // Calculate multivariate normal params and take random draws
     // ----------------------------------------------------------
