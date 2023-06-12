@@ -62,49 +62,47 @@ gibbs_after_mcem_load_chains<- function(chain_index,
 
   directory_name = paste0(pathname, "/gibbs_after_mcem_chain_", chain_index)
 
-  setwd(directory_name)
-
   # fast read
-  phi_unshaped_scan<- scan("phi.csv", sep = ",")
+  phi_unshaped_scan<- scan(file = paste0(directory_name, "/phi.csv"), sep = ",")
   # phi_unshaped<- matrix(phi_unshaped_scan[(burnin*(p+1) + 1):(num_sample*(p+1))], nrow=(num_sample-burnin), ncol= (p+1), byrow= T)
   phi_unshaped<- matrix(phi_unshaped_scan[(1):(num_sample*(p+1))], nrow=(num_sample), ncol= (p+1), byrow= T)
   phi_final_array<- t(phi_unshaped[,-(p+1)])
 
   # fast read
-  pai_unshaped_scan<- scan(file = "pai.csv", sep = ",")
+  pai_unshaped_scan<- scan(file =  paste0(directory_name,"/pai.csv"), sep = ",")
   # transform it into a matrix with desired format
   # pai_unshaped<- matrix(pai_unshaped_scan[(burnin*(k+1) + 1):(num_sample*(k+1))], nrow= (num_sample-burnin), ncol= (k+1), byrow=T) # num_sample*k
   pai_unshaped<- matrix(pai_unshaped_scan[(1):(num_sample*(k+1))], nrow= (num_sample), ncol= (k+1), byrow=T) # num_sample*k
   pai_final_array<- t(pai_unshaped[,-(k+1)])
 
   # fast read
-  beta_unshaped_scan<- scan(file = "beta.csv", sep = ",")
+  beta_unshaped_scan<- scan(file =  paste0(directory_name,"/beta.csv"), sep = ",")
   # beta_unshaped<- matrix(beta_unshaped_scan[(burnin*(k+1) + 1):(num_sample*(k+1))], nrow= (num_sample-burnin), ncol= (k+1), byrow=T) # num_sample*k
   beta_unshaped<- matrix(beta_unshaped_scan[(1):(num_sample*(k+1))], nrow= (num_sample), ncol= (k+1), byrow=T) # num_sample*k
   beta_final_array<- t(beta_unshaped[,-(k+1)])
 
   # fast_read
-  big_z_unshaped_scan<- scan(file = "big_z.csv", sep=",")
+  big_z_unshaped_scan<- scan(file = paste0(directory_name,"/big_z.csv"), sep=",")
   # big_z_unshaped<- matrix(big_z_unshaped_scan[(burnin*(p*k+1) + 1):(num_sample*(p*k+1))], nrow = (num_sample-burnin), ncol = (p*k+1), byrow = T)
   big_z_unshaped<- matrix(big_z_unshaped_scan[(1):(num_sample*(p*k+1))], nrow = (num_sample), ncol = (p*k+1), byrow = T)
 
-  big_a_unshaped_scan<- scan(file = "big_a.csv", sep=",")
+  big_a_unshaped_scan<- scan(file = paste0(directory_name,"/big_a.csv"), sep=",")
   # big_a_unshaped<- matrix(big_a_unshaped_scan[(burnin*(p*k+1) + 1):(num_sample*(p*k+1))], nrow = (num_sample-burnin), ncol = (p*k+1), byrow = T)
   big_a_unshaped<- matrix(big_a_unshaped_scan[(1):(num_sample*(p*k+1))], nrow = (num_sample), ncol = (p*k+1), byrow = T)
 
-  latent_y_unshaped_scan <- scan(file = "latent_y.csv", sep = ",")
+  latent_y_unshaped_scan <- scan(file = paste0(directory_name,"/latent_y.csv"), sep = ",")
 
   # latent_y_unshaped<- matrix(latent_y_unshaped_scan[(burnin*(num_time_all*k*n+1) + 1):(num_sample*(num_time_all*k*n+1))], nrow = (num_sample-burnin), ncol = (num_time_all*k*n+1), byrow = T)
   latent_y_unshaped<- matrix(latent_y_unshaped_scan[(1):(num_sample*(num_time_all*k*n+1))], nrow = (num_sample), ncol = (num_time_all*k*n+1), byrow = T)
 
   # fast read
   if (ind_x){
-    variance_g_unshaped_scan<- scan("variance_g.csv", sep = ",")
+    variance_g_unshaped_scan<- scan(file = paste0(directory_name,"/variance_g.csv"), sep = ",")
     # variance_g_unshaped<- matrix(variance_g_unshaped_scan[(burnin*(p+1) + 1):(num_sample*(p+1))], nrow = (num_sample-burnin), ncol= (p+1), byrow= T)
     variance_g_unshaped<- matrix(variance_g_unshaped_scan[(1):(num_sample*(p+1))], nrow = (num_sample), ncol= (p+1), byrow= T)
     variance_g_final_array<- t(variance_g_unshaped[,-(p+1)])
 
-    individual_mean_unshaped_scan<-  scan(file = "individual_mean.csv", sep=",")
+    individual_mean_unshaped_scan<-  scan(file = paste0(directory_name,"/individual_mean.csv"), sep=",")
     # individual_mean_unshaped<- matrix(individual_mean_unshaped_scan[(burnin*(p*n+1) + 1):(num_sample*(p*n+1))], nrow = (num_sample-burnin), ncol = (p*n+1), byrow = T)
     individual_mean_unshaped<- matrix(individual_mean_unshaped_scan[(1):(num_sample*(p*n+1))], nrow = (num_sample), ncol = (p*n+1), byrow = T)
 
@@ -112,11 +110,11 @@ gibbs_after_mcem_load_chains<- function(chain_index,
 
   if (pred_indicator){
 
-    pred_y_unshaped_scan <- scan(file = "pred_y.csv", sep = ",")
+    pred_y_unshaped_scan <- scan(file =  paste0(directory_name,"/pred_y.csv"), sep = ",")
     # pred_y_unshaped<- matrix(pred_y_unshaped_scan[(burnin*(num_time_test*k*n+1) + 1):(num_sample*(num_time_test*k*n+1))], nrow = (num_sample-burnin), ncol = (num_time_test*k*n+1), byrow = T)
     pred_y_unshaped<- matrix(pred_y_unshaped_scan[(1):(num_sample*(num_time_test*k*n+1))], nrow = (num_sample), ncol = (num_time_test*k*n+1), byrow = T)
 
-    pred_x_unshaped_scan <- scan(file = "pred_x.csv", sep = ",")
+    pred_x_unshaped_scan <- scan(file =  paste0(directory_name,"/pred_x.csv"), sep = ",")
     # pred_x_unshaped<- matrix(pred_x_unshaped_scan[(burnin*(num_time_test*p*n+1) + 1):(num_sample*(num_time_test*p*n+1))], nrow = (num_sample-burnin), ncol = (num_time_test*p*n+1), byrow = T)
     pred_x_unshaped<- matrix(pred_x_unshaped_scan[(1):(num_sample*(num_time_test*p*n+1))], nrow = (num_sample), ncol = (num_time_test*p*n+1), byrow = T)
   }
