@@ -80,7 +80,7 @@ factor_loading_heatmap<- function(factor_loading_matrix, heatmap_title){
                                  #breaks = bk_2)
                                  breaks = bk)
 
-  } else if (range(factor_loading_matrix_reordered)[1]>0){ # only positive
+  } else if (range(factor_loading_matrix_reordered)[1]>=0){ # only positive
 
     bk_2<- seq(0,max(factor_loading_matrix_reordered), length = 20)
 
@@ -93,7 +93,7 @@ factor_loading_heatmap<- function(factor_loading_matrix, heatmap_title){
                                  display_numbers = ifelse(factor_loading_matrix_reordered!=0, round(factor_loading_matrix_reordered,2)," "),
                                  breaks = bk_2)
 
-  } else if (range(factor_loading_matrix_reordered)[2]<0){ # only negative
+  } else if (range(factor_loading_matrix_reordered)[2]<=0){ # only negative
 
     bk_1<- seq(min(factor_loading_matrix_reordered),0, by=0.01)
 
