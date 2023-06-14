@@ -233,15 +233,15 @@ numerics_summary_need_alignment<- function(burnin = 0,
   row_index_l_excluded<- NULL
 
   # for those whose binary counterpart z_ga is not 0 - it is continuous variable so we can calculate its rhat and the retained indexes are:
-  if (tot_sample_after_thinning%%2 ==0){
-    keep_set1_for_l<- seq(from = 1, to = floor(tot_sample_after_thinning/2), by = 1)
-    keep_set2_for_l<- seq(from = (floor(tot_sample_after_thinning/2) + 1), to = tot_sample_after_thinning, by = 1)
-  } else {
-    keep_set1_for_l<- seq(from = 1, to = floor(tot_sample_after_thinning/2), by = 1)
-    keep_set2_for_l<- seq(from = (floor(tot_sample_after_thinning/2) + 1), to = (tot_sample_after_thinning-1), by = 1)
-  }
+  # if (tot_sample_after_thinning%%2 ==0){
+  #  keep_set1_for_l<- seq(from = 1, to = floor(tot_sample_after_thinning/2), by = 1)
+  #  keep_set2_for_l<- seq(from = (floor(tot_sample_after_thinning/2) + 1), to = tot_sample_after_thinning, by = 1)
+  #} else {
+  #  keep_set1_for_l<- seq(from = 1, to = floor(tot_sample_after_thinning/2), by = 1)
+  #  keep_set2_for_l<- seq(from = (floor(tot_sample_after_thinning/2) + 1), to = (tot_sample_after_thinning-1), by = 1)
+  #}
 
-  keep_set_index_for_l<- c(keep_set1_for_l, keep_set2_for_l)
+  #keep_set_index_for_l<- c(keep_set1_for_l, keep_set2_for_l)
 
   # for those whose binary counterpart z_ga is not 0: summarize the point estimate if it is significantly different from 0
   factor_loading_l_final_array_summary_for_nonzero<- matrix(0, nrow = p, ncol =k)
@@ -267,19 +267,6 @@ numerics_summary_need_alignment<- function(burnin = 0,
         next
       } else {
 
-        mh.list1<-   list(as.mcmc(factor_loading_l_final_array[biomarker_index, factor_index, keep_set1_for_l,1]),
-                          as.mcmc(factor_loading_l_final_array[biomarker_index, factor_index, keep_set2_for_l,1]))
-
-        for (chain_index in 2:tot_chain){
-          mh.list1<- c(mh.list1,
-                       list(as.mcmc(factor_loading_l_final_array[biomarker_index, factor_index, keep_set1_for_l, chain_index]),
-                            as.mcmc(factor_loading_l_final_array[biomarker_index, factor_index, keep_set2_for_l, chain_index])))
-        }
-
-        mh.list <- mcmc.list(mh.list1)
-
-        rhat_l[row_index_l,(3:4)]<- as.numeric(gelman.diag(mh.list)$psrf)
-
         # summarize to see if it is significantly different from 0
         factor_loading_l_final_array_summary_for_nonzero_lower[biomarker_index, factor_index]<-
           as.numeric(quantile(factor_loading_l_final_array[biomarker_index, factor_index, ,],c(0.025,0.50,0.975)))[1]
@@ -289,11 +276,53 @@ numerics_summary_need_alignment<- function(burnin = 0,
 
         if (factor_loading_l_final_array_summary_for_nonzero_lower[biomarker_index, factor_index]<0 &  factor_loading_l_final_array_summary_for_nonzero_upper[biomarker_index, factor_index]>0){
           # not significant from 0: summary for this l_ga is set as default 0
+          row_index_l_excluded<- c(row_index_l_excluded,row_index_l)
           next
         } else {
+
           # significant from 0: summarize for this l_ga using median estimate
           factor_loading_l_final_array_summary_for_nonzero[biomarker_index, factor_index]<-
             as.numeric(quantile(factor_loading_l_final_array[biomarker_index, factor_index, ,],c(0.025,0.50,0.975)))[2]
+
+          ## revised: when assessing convergence for l_ga|Z_ga, should only consider the iterations when Z_ga = 1
+
+          length_index_nonzero<- sum(factor_loading_l_final_array[biomarker_index, factor_index, ,1]!=0)
+
+          for (chain_index in 2:tot_chain){
+
+            length_index_nonzero<- min(length_index_nonzero, sum(factor_loading_l_final_array[biomarker_index, factor_index, ,chain_index]!=0))
+
+          }
+
+          if ( length_index_nonzero %% 2 == 0){
+            length_index_nonzero<-  length_index_nonzero
+          } else {
+            length_index_nonzero<-  length_index_nonzero - 1
+          }
+
+          keep_set1_index_nonzero<- (1:(length_index_nonzero/2))
+          keep_set2_index_nonzero<- ((length_index_nonzero/2)+1):length_index_nonzero
+
+          ###################################################################################################################
+
+          index_nonzero<- which(factor_loading_l_final_array[biomarker_index, factor_index, ,1]!=0)
+
+          mh.list1<-   list(as.mcmc(factor_loading_l_final_array[biomarker_index, factor_index,   index_nonzero[keep_set1_index_nonzero], 1]),
+                            as.mcmc(factor_loading_l_final_array[biomarker_index, factor_index,   index_nonzero[keep_set2_index_nonzero], 1]))
+
+          for (chain_index in 2:tot_chain){
+
+            index_nonzero<- which(factor_loading_l_final_array[biomarker_index, factor_index, ,chain_index]!=0)
+
+            mh.list1<- c(mh.list1,
+                         list(as.mcmc(factor_loading_l_final_array[biomarker_index, factor_index, index_nonzero[keep_set1_index_nonzero], chain_index]),
+                              as.mcmc(factor_loading_l_final_array[biomarker_index, factor_index, index_nonzero[keep_set2_index_nonzero], chain_index])))
+          }
+
+          mh.list <- mcmc.list(mh.list1)
+
+          rhat_l[row_index_l,(3:4)]<- as.numeric(gelman.diag(mh.list)$psrf)
+
         }
       }
     }
@@ -330,13 +359,13 @@ numerics_summary_need_alignment<- function(burnin = 0,
         rhat_y[row_index_y,2]<- factor_index
         rhat_y[row_index_y,3]<- time_index
 
-        mh.list1<-   list(as.mcmc(latent_y_final_array_reordered_across_chain[time_index, factor_index, person_index, keep_set1_for_l, 1]),
-                          as.mcmc(latent_y_final_array_reordered_across_chain[time_index, factor_index, person_index, keep_set2_for_l, 1]))
+        mh.list1<-   list(as.mcmc(latent_y_final_array_reordered_across_chain[time_index, factor_index, person_index, keep_set1, 1]),
+                          as.mcmc(latent_y_final_array_reordered_across_chain[time_index, factor_index, person_index, keep_set2, 1]))
 
         for (chain_index in 2:tot_chain){
           mh.list1<- c(mh.list1,
-                       list(as.mcmc(latent_y_final_array_reordered_across_chain[time_index, factor_index, person_index, keep_set1_for_l,chain_index]),
-                            as.mcmc(latent_y_final_array_reordered_across_chain[time_index, factor_index, person_index, keep_set2_for_l,chain_index])))
+                       list(as.mcmc(latent_y_final_array_reordered_across_chain[time_index, factor_index, person_index, keep_set1,chain_index]),
+                            as.mcmc(latent_y_final_array_reordered_across_chain[time_index, factor_index, person_index, keep_set2,chain_index])))
         }
 
         mh.list <- mcmc.list(mh.list1)
