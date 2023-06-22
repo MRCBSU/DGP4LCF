@@ -11,11 +11,11 @@ vignette: >
 library(DGP4LCF)
 ```
 
-In this example, we apply the BSFA-DGP model to a simulated data, which was generated under the scenario where latent factors were correlated and had small variability (scenario CS) in the paper. We show how to use different functions within the package to conduct a full data analysis.
+In this example, we apply the BSFA-DGP model to simulated data, which were generated under the scenario where latent factors were correlated and had small variability (scenario CS) in the paper. We show how to use different functions within the package to conduct a full data analysis.
 
-The simulated data has already been saved in the package, named 'sim_fcs_truth.rda'. Before using functions within this package for analysis, the user has to prepare the initial values for latent factor scores $y$, regression coefficients of factor loadings $a$, binary variables of factor loadings $z$ and also the variance for residuals $\phi^2$. One possible way to obtain initials is to use [BFRM software](http://www2.stat.duke.edu/~mw/mwsoftware/BFRM/examples.html) to conduct a simple Bayesian Sparse Factor Analysis for independent data. We have already saved initials for use in the file named 'sim_fcs_init.rda'. Note that to save the time for knitting rmarkdown, we have also saved other results of this simulated data in the data file named 'sim_fcs_results_regular_8.rda', and users should be able to reproduce all results following the instructions in this vignette. 
+The object 'sim_fcs_truth' saves the simulated data. Before using functions within this package for analysis, the user has to prepare the initial values for latent factor scores $y$, regression coefficients of factor loadings $a$, binary variables of factor loadings $z$ and also the variance for residuals $\phi^2$. One possible way to obtain initial values is to use the [BFRM program](http://www2.stat.duke.edu/~mw/mwsoftware/BFRM/examples.html) to conduct a simple Bayesian Sparse Factor Analysis for independent data. We have already saved initial values for use in 'sim_fcs_init'. Note that to save the time for knitting rmarkdown, we have also saved other results of this simulated data in the object named 'sim_fcs_results_regular_8', and users should be able to reproduce all results following the instructions in this vignette. 
 
-First, we use the function 'mcem_parameters_setup' to generate R objects storing parameters in the model that are needed in the following Monte Carlo Expectation Maximization (MCEM) algorithm. We choose the model with the intercept term denoting subject-gene mean. 
+First, we use the function 'mcem_parameters_setup' to generate R objects storing parameters in the model that are needed in the following Monte Carlo Expectation Maximization (MCEM) algorithm. 
 
 ```{r, eval = FALSE}
 
@@ -39,7 +39,6 @@ for (person_index in 1:n){
   observed_x_train_regular_8[[person_index]]<- sim_fcs_truth$observed_x_train[,,person_index]
 }
 
-# apply the function 'mcem_parameter_setup'
 mcem_parameter_setup_result<-
   mcem_parameter_setup(p = 100, k = 4, n = 17, q = 8,
                        obs_time_num = obs_time_num,
@@ -56,7 +55,7 @@ mcem_parameter_setup_result<-
 
 ```
 
-Next, these generated R objects, along with other model setups by the user, can be input to the function 'mcem_algorithm' for the Maximum Likelihood Estimate (MLE) of Dependent Gaussian Process (DGP) parameters.
+Next, these generated R objects, along with other model setups created by the user, can be input to the function 'mcem_algorithm' to find the Maximum Likelihood Estimate (MLE) of Dependent Gaussian Process (DGP) parameters. Here, we choose a model with an intercept term denoting subject-gene mean. 
 
 ```{r, eval = FALSE}
 
@@ -67,7 +66,7 @@ mcem_algorithm_result<-
 
 ```
 
-The updating process of cross-correlations can be visualized using the function 'mcem_cov_plot'. The true cross-correlation was also displayed at last for comparison.
+The function 'mcem_cov_plot' visualizes the updating process of cross-correlations. The true cross-correlation is also displayed for comparison.
 
 ```{r fig1, fig.height = 4, fig.width=7}
 
@@ -80,7 +79,7 @@ mcem_cov_plot(sim_fcs_truth$gp_sigmay_truth, k = 4, q = 10, title = "Truth: Corr
 
 ```
 
-Under the MLE of DGP parameters, we run the final Gibbs sampler for the posterior summary of other parameters in the model, and also of the predicted gene expression. We run multiple chains in parallel, and use the function 'gibbs_after_mcem_diff_initials' to generate different initials for different chains.
+Under the MLE of DGP parameters, we run the final Gibbs sampler for the posterior summary of other parameters in the model, and also of the predicted gene expression. We run multiple chains in parallel, and use the function 'gibbs_after_mcem_diff_initials' to generate different initial values for different chains.
 
 ```{r, eval = FALSE}
 
@@ -92,7 +91,7 @@ gibbs_after_mcem_diff_initials_result<-
 
 ```
 
-After initialization, multiple chains can be run in parallel (or iteratively as follows when the computing speed for one chain is fast), and posterior samples will be saved to the specified location.
+After initialization, we can run multiple chains, and posterior samples will be saved to the specified location.
 
 ```{r, eval = FALSE}
 
@@ -118,8 +117,6 @@ for (chain_index in 1:tot_chain){
 To combine results from different chains for the final summary, run:
 
 ```{r, eval = FALSE}
-
-# create a constant list storing constants
 
 constant_list<- list(num_time_test = 2,
                      mc_num = 10000,
@@ -147,7 +144,7 @@ gibbs_after_mcem_combine_chains_result<- gibbs_after_mcem_combine_chains(tot_cha
 
 ```
 
-When it comes to the posterior analysis, we first focus on the continuous variables that do not need to alignment (due to the identifiability issue), including variables pred_x and phi (also including subject-gene mean and variance_g if the chosen model includes the intercept term). The function 'numerics_summary_do_not_need_alignment' not only assesses the convergence of these variables, but also return the posterior result of pred_x: 
+For the posterior analysis, we first focus on the continuous variables that do not need to be aligned (due to the identifiability issue), including variables pred_x and phi (also including subject-gene mean and variance_g if the chosen model includes the intercept term). The function 'numerics_summary_do_not_need_alignment' not only assesses the convergence of these variables, but also returns the posterior result of pred_x: 
 
 ```{r, eval = FALSE}
 numerics_summary_do_not_need_alignment_result<-
@@ -165,7 +162,7 @@ sim_fcs_results_regular_8$numerics_summary_do_not_need_alignment_result$converge
 
 ```
 
-With regard to the prediction performance, an overview can be provided through mean absolute error, mean width of the intervals, and the proportion of coverage:
+An overview of the prediction performance can be provided through mean absolute error, mean width of the intervals, and the proportion of coverage:
 
 ```{r}
 
@@ -181,7 +178,7 @@ pred_result_overview
 
 ```
 
-Point estimate, and predictive interval for a specific gene of interest can also be retrieved. Taking the 2nd gene of the 1st person at the 1st new time point as an example, 
+A point estimate and a predictive interval for a specific gene of interest can also be retrieved. Taking the 2nd gene of the 1st person at the 1st new time point as an example, 
 
 ```{r}
 
@@ -210,7 +207,7 @@ numerics_summary_need_alignment_result<-
   numerics_summary_need_alignment(gibbs_after_mcem_combine_chains_result =  gibbs_after_mcem_combine_chains_result)
 ```
 
-To check convergence situation:
+To check convergence:
 
 ```{r}
 
@@ -218,7 +215,7 @@ sim_fcs_results_regular_8$numerics_summary_need_alignment_result$convergence_sum
 
 ```
 
-To visualize the estimated result of factor loadings, 
+To visualize the estimated result of factor loadings:
 
 ```{r fig2, fig.height = 6, fig.width=7}
 
@@ -227,7 +224,7 @@ factor_loading_heatmap(sim_fcs_results_regular_8$numerics_summary_need_alignment
 
 ```
 
-and also visualize the trajectory of a specific factor for one specific person:
+and visualize the trajectory of a specific factor for a specified person:
 
 ```{r fig3, fig.height = 4, fig.width=7}
 
@@ -240,7 +237,7 @@ factor_score_trajectory(sim_fcs_results_regular_8$numerics_summary_need_alignmen
 
 ```
 
-An overview of model's performance in estimating true factor scores can be calculated as:
+The model's performance can be measured by calculating the mean absolute error of estimating true factor scores:
 
 ```{r}
 q<- 8

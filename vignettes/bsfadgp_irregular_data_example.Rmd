@@ -11,11 +11,11 @@ vignette: >
 library(DGP4LCF)
 ```
 
-In this example, we demonstrate the usage of BSFA-DGP model to irregular data, which means there exist subjects in the study who have incomplete gene expression. The complete data is the same as that used in the other vignette, and it is saved in 'sim_fcs_truth.rda'. We assume that only people whose index is even number have complete observations of gene expression, while poeple whose index is odd number have two missing observations at the third and sixth time point. 
+In this example, we demonstrate the usage of BSFA-DGP model to irregular data, which means there exist subjects in the study who have incomplete gene expression. The complete data is the same as that used in the other vignette, and it is saved in 'sim_fcs_truth.rda'. We generated simulated data, where even-numbered people have complete observations of gene expression, while poeple whose index is odd number have two missing observations at the third and sixth time point. 
 
-Before using functions within this package for analysis, the user has to prepare the initial values for latent factor scores $y$, regression coefficients of factor loadings $a$, binary variables of factor loadings $z$ and also the variance for residuals $\phi^2$. One possible way to obtain initials is to use [BFRM software](http://www2.stat.duke.edu/~mw/mwsoftware/BFRM/examples.html) to conduct a simple Bayesian Sparse Factor Analysis for cross-sectional data. We have already saved initials for use in the file named 'sim_fcs_init.rda'. Note that to save the time for knitting rmarkdown, we have also saved results of this simulated data in the data file named 'sim_fcs_results_irregular_6_8.rda', and users should be able to reproduce all results following the instructions in this vignette. 
+First, the user has to prepare the initial values for latent factor scores $y$, regression coefficients of factor loadings $a$, binary variables of factor loadings $z$ and also the variance for residuals $\phi^2$. One possible way to obtain initial values is to use [BFRM program](http://www2.stat.duke.edu/~mw/mwsoftware/BFRM/examples.html) to conduct a simple Bayesian Sparse Factor Analysis for cross-sectional data. We have already saved initial values for use in the file named 'sim_fcs_init.rda'. Note that to save the time for knitting rmarkdown, we have also saved results of this simulated data in the data file named 'sim_fcs_results_irregular_6_8.rda', and users should be able to reproduce all results following the instructions in this vignette. 
 
-Firstly, we use the function 'mcem_parameters_setup' to generate R objects storing parameters in the model that are needed in the following Monte Carlo Expectation Maximization (MCEM) algorithm. We choose the model with the intercept term. 
+Firstly, we use the function 'mcem_parameters_setup' to generate R objects storing parameters in the model that are needed in the following Monte Carlo Expectation Maximization (MCEM) algorithm. 
 
 ```{r, eval = FALSE}
 
@@ -38,7 +38,7 @@ mcem_parameter_setup_irregular_time_result<-
 
 ```
 
-Next, these generated R objects, along with other model setups by the user, can be input to the function 'mcem_algorithm_irregular_time' for the Maximum Likelihood Estimate (MLE) of Dependent Gaussian Process (DGP) parameters.
+Next, these generated R objects, along with other model setups created by the user, can be input to the function 'mcem_algorithm_irregular_time' for the Maximum Likelihood Estimate (MLE) of Dependent Gaussian Process (DGP) parameters. We choose a model with an intercept term. 
 
 ```{r, eval = FALSE}
 
@@ -49,7 +49,7 @@ mcem_algorithm_irregular_time_result<-
 
 ```
 
-The updating process of cross-correlation between factors within the MCEM algorithm, can be visualized using the function 'mcem_cov_plot'. The true cross-correlation was also attached at last for comparison.
+The function 'mcem_cov_plot' visualizes the updating process of cross-correlations. The true cross-correlation is also displayed for comparison.
 
 ```{r fig1, fig.height = 4, fig.width=7}
 
@@ -62,7 +62,7 @@ mcem_cov_plot(sim_fcs_truth$gp_sigmay_truth, k = 4, q = 10, title = "Truth: Corr
 
 ```
 
-Under the MLE of DGP parameters, we run the final Gibbs sampler for the posterior summary of other parameters in the model, and also of the predicted gene expression. We run multiple chains, and use the function 'gibbs_after_mcem_diff_initials' to generate different initials for different chains.
+Under the MLE of DGP parameters, we run the final Gibbs sampler for the posterior summary of other parameters in the model, and also of the predicted gene expression. We run multiple chains, and use the function 'gibbs_after_mcem_diff_initials' to generate different initial values for different chains.
 
 ```{r, eval = FALSE}
 
@@ -74,13 +74,14 @@ gibbs_after_mcem_diff_initials_irregular_time_result<-
 
 ```
 
-After initialization, multiple chains can be run in parallel (or iteratively as follows when the computing speed for one chain is fast), and posterior samples will be saved to the specified location.
+After initialization, we can run multiple chains, and posterior samples will be saved to the specified location.
 
 ```{r, eval = FALSE}
 
 tot_chain<- 5
 
 for (chain_index in 1:tot_chain){
+  
   gibbs_after_mcem_algorithm(chain_index = chain_index,
                                             mc_num = 10000,
                                             burnin = 3000,
@@ -127,7 +128,7 @@ gibbs_after_mcem_combine_chains_irregular_time_result<- gibbs_after_mcem_combine
 
 ```
 
-When it comes to the posterior analysis, we first focus on the continuous variables that do not need to relabeling (due to the identifiability issue), including variables pred_x and phi (also including subject-gene mean and variance_g if the chosen model includes the intercept term). The function 'numerics_summary_do_not_need_alignment' not only assesses the convergence of these variables, but also return the posterior result of pred_x: 
+For the posterior analysis, we first focus on the continuous variables that do not need to be aligned (due to the identifiability issue), including variables pred_x and phi (also including subject-gene mean and variance_g if the chosen model includes an intercept term). The function 'numerics_summary_do_not_need_alignment' not only assesses the convergence of these variables, but also returns the posterior result of pred_x: 
 
 ```{r, eval = FALSE}
 
