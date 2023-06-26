@@ -74,7 +74,7 @@ gibbs_after_mcem_diff_initials_irregular_time_result<-
 
 ```
 
-After initialization, we can run multiple chains, and posterior samples will be saved to the specified location.
+After initialization, we can run multiple chains, and posterior samples (after burnin and thinning, as designated by the user) will be saved as csv files to the specified location. One csv file contains samples of one parameter, and each row within the csv file contains samples from one Gibbs iteration.
 
 ```{r, eval = FALSE}
 
