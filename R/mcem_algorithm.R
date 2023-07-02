@@ -207,6 +207,12 @@ mcem_algorithm<- function(ind_x,
   #######################################################################################################################################################
   iter_count_tot<- 0
 
+  # calculate the speed of each main part
+  gibbs_comp<- rep(0, times = em_num)
+  gpfda_comp<- rep(0, times = em_num)
+  relabel_comp<- rep(0, times = em_num)
+  lb_comp<- rep(0, times = em_num)
+
   for (i_em in 2:em_num){
 
     mc_num_old<- 1 # starting index of the gibbs sampler
@@ -242,10 +248,10 @@ mcem_algorithm<- function(ind_x,
 
         # end the whole algorithm if  iter_count_tot exceeds a pre-specified number
         if (iter_count_tot> iter_count_num){
-          print(paste0("This is the current total number of increasing the sample size: ", iter_count_tot))
+          print(paste0("Attempt number in total: ", iter_count_tot))
           print("The total number of increasing the sample size has exceeded the pre-specified number; algorithm ends.")
           index_used<- (i_em-1)
-          print(paste0("The finally used MCEM results stored in this index:", index_used))
+          print(paste0("The final result is stored in this iteration: ", index_used))
           break
         }
         # end the whole algorithm if iter_count exceeds a pre-specified number
@@ -313,6 +319,8 @@ mcem_algorithm<- function(ind_x,
       # x: a list of n elements, each element is a p*q_i matrix
       # missing_list: tells the positions of imputed values that needs to be updated in each Gibbs iteration
 
+      start_time<- Sys.time()
+
         out <-
           gibbs_within_mcem_irregular_time(latent_y,
                                            x,
@@ -331,6 +339,8 @@ mcem_algorithm<- function(ind_x,
                       missing_person_index,
                       full_person_num,
                       full_person_index)
+
+        gibbs_comp[i_em]<-  Sys.time() - start_time
 
         # print("Gibbs Sampler Finished.")
 
@@ -352,11 +362,13 @@ mcem_algorithm<- function(ind_x,
 
       # print("Relabling for factor loadings and scores...")
 
+      start_time<- Sys.time()
       reorderedPosterior <-  factor.switching::rsp_exact(lambda_mcmc = temp_matrix, rotate = FALSE)
+      relabel_comp[i_em]<- Sys.time() - start_time
 
       response <- list()
 
-      if (model_dgp == 0){
+      if (!model_dgp){
         cov_matrix<- matrix(0, nrow=(k*q), ncol=(k*q))
         hp_record<- matrix(0, nrow=k, ncol=5) # each process has 5 parameters
       }
@@ -393,7 +405,7 @@ mcem_algorithm<- function(ind_x,
         response[[j]]<- do.call(cbind, latent_y_list)
 
         # IGP model only: for the jth response
-        if (model_dgp == 0){
+        if (!model_dgp){
 
           response_temp<- list()
           response_temp[[1]]<- response[[j]]
@@ -411,7 +423,11 @@ mcem_algorithm<- function(ind_x,
 
         h3n2_data$response<- response
 
+        start_time<- Sys.time()
+
         h3n2_res <- GPFDA::mgpr(Data=h3n2_data, meanModel = 0)
+
+        gpfda_comp[i_em]<- Sys.time() - start_time
 
         hyper_record[i_em,]<- h3n2_res$hyper
 
@@ -428,6 +444,7 @@ mcem_algorithm<- function(ind_x,
       sigmay_inv_record[i_em,,]<-  solve(sigmay_record[i_em,,])
 
       ################# Algorithm 1: 2.4. calculate asymptotic lower bound to decide whether or not to accept this updated \theta #################
+      start_time<- Sys.time()
 
       batch_size<- 1
       batch_num<- sample_num
@@ -451,6 +468,8 @@ mcem_algorithm<- function(ind_x,
       ase<- sqrt(sigma2_est/(batch_size*batch_num))
       lower_bound<- delta_q_mean-(qnorm(prob_conf_interval)*ase)
 
+      lb_comp[i_em]<- Sys.time() - start_time
+
       # check_list<- list(sigmay_record,
       #                   q,
       #                   k,
@@ -468,10 +487,21 @@ mcem_algorithm<- function(ind_x,
       # return(check_list)
 
       ############################################### print some results ##############################################################################
-      print(paste("This is the result under which EM iteration of gp parameter:",(i_em-1)))
-      print(paste("This is which attempt to update gp parameters within this EM iteration:", iter_count))
-      print(paste("This is calculated lower bound (mean scale) for Q-change after updating:", lower_bound/(k*q*n)))
-      print(paste0("This is the current total number of increasing the sample size: ", iter_count_tot))
+      ### algorithm progress
+      print(paste("EM iteration number:",(i_em-1)))
+      print(paste("Lower bound:", lower_bound/(k*q*n)))
+      print(paste("Attempt number within this EM iteration:", iter_count))
+      print(paste("Attempt number in total:", iter_count_tot))
+
+      ### computation complexity
+      # print(paste("This is the sample size:",n))
+      # print(paste("This is the independent sample size:",ind_num))
+      # print(paste("This is the monte carlo sample size:",mc_num))
+
+      # print(paste("This is the time cost for gibbs:",gibbs_comp[i_em]))
+      # print(paste("This is the time cost for relabeling:",relabel_comp[i_em]))
+      # print(paste("This is the time cost for gpfda:",gpfda_comp[i_em]))
+      # print(paste("This is the time cost for lb:",lb_comp[i_em]))
 
       ################################ if not factor first but time first, then need to reorder the covariance matrix for next Gibbs #########################
 
@@ -495,7 +525,12 @@ mcem_algorithm<- function(ind_x,
                      ig_parameter = ig_parameter,
                      missing_list = missing_list,
                      missing_num = missing_num,
-                     ipt_x = ipt_x)
+                     ipt_x = ipt_x,
+                     gibbs_comp = gibbs_comp,
+                     relabel_comp = relabel_comp,
+                     gpfda_comp = gpfda_comp,
+                     lb_comp = lb_comp)
+
   return(result_list)
 }
 
