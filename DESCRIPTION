@@ -4,7 +4,7 @@ Title: Dependent Gaussian Processes for Longitudinal Correlated Factors
 Version: 1.0.0
 Maintainer: Jiachen Cai <jiachen.cai@mrc-bsu.cam.ac.uk>
 Authors@R: person("Jiachen", "Cai", email = "jiachen.cai@mrc-bsu.cam.ac.uk", role = c("aut", "cre"))
-Description: Model high-dimensional gene expression trajectories using dynamic factor analysis with dependent gaussian processes
+Description: Model high-dimensional gene expression trajectories using dynamic factor analysis with dependent Gaussian processes
 License: MIT + file LICENSE
 Encoding: UTF-8
 LazyData: true
